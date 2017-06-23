@@ -23,5 +23,5 @@ public abstract class BaseFragment extends Fragment {
         return view;
     }
 
-    abstract int getResId();
+    protected abstract int getResId();
 }

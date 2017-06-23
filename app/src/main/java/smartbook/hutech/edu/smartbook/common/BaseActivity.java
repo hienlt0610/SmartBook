@@ -6,7 +6,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
-import butterknife.BindView;
 import butterknife.ButterKnife;
 import smartbook.hutech.edu.smartbook.R;
 
@@ -16,7 +15,6 @@ import smartbook.hutech.edu.smartbook.R;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
-    @BindView(R.id.toolbar)
     public Toolbar mToolbar;
 
 
@@ -32,6 +30,7 @@ public abstract class BaseActivity extends AppCompatActivity {
      * Setup toolbar
      */
     private void setupToolbar() {
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
         if (mToolbar != null) {
             setSupportActionBar(mToolbar);
         }
