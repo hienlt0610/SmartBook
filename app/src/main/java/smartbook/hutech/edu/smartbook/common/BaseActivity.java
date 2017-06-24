@@ -2,6 +2,8 @@ package smartbook.hutech.edu.smartbook.common;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -75,4 +77,37 @@ public abstract class BaseActivity extends AppCompatActivity {
      * @return
      */
     protected abstract int getResId();
+
+
+    private void addReplaceFragment(BaseFragment fragment, int containerViewId, boolean isReplace, boolean isAddToBackStack) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if (fragmentManager != null && fragment != null) {
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            if (isReplace)
+                fragmentTransaction.replace(containerViewId, fragment);
+            else
+                fragmentTransaction.add(containerViewId, fragment, fragment.getClass().getSimpleName());
+            if (isAddToBackStack) {
+                fragmentTransaction.addToBackStack(fragment.getClass().getSimpleName());
+            }
+            fragmentTransaction.commit();
+        }
+    }
+
+    public void replaceFragment(BaseFragment fragment, int containerViewId, boolean isAddToBackStack) {
+
+        addReplaceFragment(fragment, containerViewId, true, isAddToBackStack);
+    }
+
+    public void addFragment(BaseFragment fragment, int containerViewId, boolean isAddToBackStack) {
+        addReplaceFragment(fragment, containerViewId, false, isAddToBackStack);
+    }
+
+    public void clearAllBackStack() {
+        FragmentManager fm = getSupportFragmentManager();
+        int count = fm.getBackStackEntryCount();
+        for (int i = 0; i < count; ++i) {
+            fm.popBackStack();
+        }
+    }
 }

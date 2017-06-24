@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="smartbook.hutech.edu.smartbook.ui.activity.MainActivity">
+    android:orientation="vertical">
 
-    <FrameLayout
-        android:id="@+id/actMain_flContainer"
+    <com.jude.easyrecyclerview.EasyRecyclerView
+        android:id="@+id/fragLocal_rvCategory"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
 </LinearLayout>
