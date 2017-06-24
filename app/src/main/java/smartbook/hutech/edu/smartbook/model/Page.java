@@ -1,5 +1,7 @@
 package smartbook.hutech.edu.smartbook.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 /**
@@ -7,7 +9,10 @@ import java.util.List;
  */
 
 public class Page {
+    @SerializedName("pageNumber")
     private int pageNumber;
+
+    @SerializedName("itemList")
     private List<Item> mItemList;
 
     public int getPageNumber() {

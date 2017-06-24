@@ -1,5 +1,7 @@
 package smartbook.hutech.edu.smartbook.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,11 +10,22 @@ import java.util.List;
  */
 
 public class Book {
+    @SerializedName("bookTitle")
     private String mTitle;
+
+    @SerializedName("author")
     private String mAuthor;
+
+    @SerializedName("description")
     private String mDescription;
+
+    @SerializedName("bookCover")
     private String mCover;
+
+    @SerializedName("download")
     private String mDownload;
+
+    @SerializedName("pageList")
     private List<Page> mPageList;
 
     public String getTitle() {
