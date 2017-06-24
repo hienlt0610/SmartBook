@@ -40,6 +40,7 @@ public class MainActivity extends BaseActivity {
         mTabPageAdapter.addPage("test", new HomeFragment());
         mViewPager.setAdapter(mTabPageAdapter);
         mTabLayout.setupWithViewPager(mViewPager);
+        mTabLayout.setScrollPosition(0, 0f, true);
     }
 
     @Override
