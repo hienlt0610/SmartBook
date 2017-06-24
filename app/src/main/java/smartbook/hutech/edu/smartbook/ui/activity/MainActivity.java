@@ -8,6 +8,8 @@ import smartbook.hutech.edu.smartbook.ui.fragment.StoreFragment;
 
 public class MainActivity extends BaseActivity {
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
