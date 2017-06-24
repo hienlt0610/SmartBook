@@ -2,7 +2,7 @@ package smartbook.hutech.edu.smartbook.adapter;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.List;
  * Created by hienl on 6/24/2017.
  */
 
-public class BookReaderPagerAdapter extends FragmentPagerAdapter {
+public class BookReaderPagerAdapter extends FragmentStatePagerAdapter {
     private List<Fragment> mFragments;
 
     public BookReaderPagerAdapter(FragmentManager fm) {

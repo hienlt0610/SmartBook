@@ -1,6 +1,7 @@
 package smartbook.hutech.edu.smartbook.common.view;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,6 +13,8 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import timber.log.Timber;
 
 /**
  * Created by hienl on 6/24/2017.
@@ -114,6 +117,12 @@ public class BookImageView extends TouchImageView {
             canvas.drawRect(from.x, from.y, to.x, to.y, paint);
             paint.setColor(Color.RED);
         }
+        Timber.d(getDrawable().getIntrinsicWidth() + " - " + getDrawable().getIntrinsicHeight());
+    }
+
+    @Override
+    public void setImageBitmap(Bitmap bm) {
+        super.setImageBitmap(bm);
     }
 
     /**

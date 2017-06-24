@@ -95,6 +95,9 @@ public class TouchImageView extends ImageView {
     }
 
     private void sharedConstructing(Context context) {
+        if (isInEditMode()) {
+            return;
+        }
         super.setClickable(true);
         this.context = context;
         mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
