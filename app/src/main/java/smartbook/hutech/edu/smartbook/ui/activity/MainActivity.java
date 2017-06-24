@@ -3,6 +3,7 @@ package smartbook.hutech.edu.smartbook.ui.activity;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
+import android.widget.Toast;
 
 import butterknife.BindView;
 import smartbook.hutech.edu.smartbook.R;
@@ -34,6 +35,7 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initTabLayoutAndPager() {
+        Toast.makeText(this, "sdsadas", Toast.LENGTH_SHORT).show();
         mTabPageAdapter = new TabPageAdapter(getSupportFragmentManager());
         mTabPageAdapter.addPage("test", new HomeFragment());
         mTabPageAdapter.addPage("test", new HomeFragment());
