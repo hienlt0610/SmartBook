@@ -27,7 +27,7 @@ public class MainActivity extends BaseActivity {
         for (int i = 0; i < 100; i++) {
             book.getPageList().add(new Page());
         }
-        BookReaderActivity.start(this, book);
+//        BookReaderActivity.start(this, book);
     }
 
 
