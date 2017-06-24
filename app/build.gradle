@@ -39,4 +39,5 @@ dependencies {
     compile "com.mikepenz:iconics-core:2.8.7@aar"
     compile 'com.mikepenz:material-design-iconic-typeface:2.2.0.3@aar'
     compile 'com.google.code.gson:gson:2.8.1'
+    compile 'com.jakewharton.timber:timber:4.5.1'
 }
