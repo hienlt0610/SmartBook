@@ -1,3 +1,13 @@
 <resources>
+    <!--Common-->
     <string name="app_name">SmartBook</string>
+
+    <!--Table of content-->
+    <string name="table_of_content_tab_all">Tất cả</string>
+    <string name="table_of_content_tab_bookmark">Book mark</string>
+
+    <!--Book reader-->
+    <string name="book_reader_page_move">Di chuyển nhanh</string>
+    <string name="book_reader_input_page_to_move">Vui lòng nhập trang cần đến</string>
+    <string name="book_reader_cannot_move">Không thể di chuyển tới trang 0</string>
 </resources>

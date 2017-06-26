@@ -1,13 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fitsSystemWindows="true"
+
+                android:orientation="vertical">
 
     <smartbook.hutech.edu.smartbook.common.view.ExtendedViewPager
         android:id="@+id/activityBookViewer_viewpager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true">
 
     </smartbook.hutech.edu.smartbook.common.view.ExtendedViewPager>
-</LinearLayout>
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="#CC000000"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+
+    <LinearLayout
+        android:id="@+id/activityBookViewer_ll_bottom_action"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical">
+
+        <com.mikepenz.iconics.view.IconicsButton
+            android:id="@+id/activityBookViewer_btn_show_hide_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:background="@color/material_color_black_87_percent"
+            android:minHeight="0dp"
+            android:padding="2dp"
+            android:text="{gmi-chevron-up}"
+            android:textColor="@color/material_color_white"
+            android:textSize="@dimen/_20dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/material_color_black_87_percent"
+            android:orientation="horizontal">
+
+            <com.mikepenz.iconics.view.IconicsButton
+                android:id="@+id/activityBookViewer_btn_acion_cancel"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="?android:selectableItemBackground"
+                android:minHeight="0dp"
+                android:text="{gmi-close}"
+                android:textAlignment="center"
+                android:textColor="@color/material_color_white"
+                android:textSize="24dp"/>
+
+            <com.mikepenz.iconics.view.IconicsButton
+                android:id="@+id/activityBookViewer_btn_acion_highlight"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="?android:selectableItemBackground"
+                android:minHeight="0dp"
+                android:text="{gmi-border-color}"
+                android:textAlignment="center"
+                android:textColor="@color/material_color_white"
+                android:textSize="24dp"/>
+
+            <com.mikepenz.iconics.view.IconicsButton
+                android:id="@+id/activityBookViewer_btn_acion_clear"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="?android:selectableItemBackground"
+                android:minHeight="0dp"
+                android:text="{gmi-format-color-reset}"
+                android:textAlignment="center"
+                android:textColor="@color/material_color_white"
+                android:textSize="24dp"/>
+
+            <com.mikepenz.iconics.view.IconicsButton
+                android:id="@+id/activityBookViewer_btn_acion_show_result"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="?android:selectableItemBackground"
+                android:minHeight="0dp"
+                android:text="{gmi-assignment-check}"
+                android:textAlignment="center"
+                android:textColor="@color/material_color_white"
+                android:textSize="24dp"/>
+        </LinearLayout>
+    </LinearLayout>
+</RelativeLayout>

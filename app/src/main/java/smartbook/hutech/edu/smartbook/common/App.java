@@ -2,6 +2,9 @@ package smartbook.hutech.edu.smartbook.common;
 
 import android.app.Application;
 
+import com.mikepenz.iconics.Iconics;
+import com.mikepenz.material_design_iconic_typeface_library.MaterialDesignIconic;
+
 import timber.log.Timber;
 
 /**
@@ -13,5 +16,6 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         Timber.plant(new Timber.DebugTree());
+        Iconics.registerFont(new MaterialDesignIconic());
     }
 }
