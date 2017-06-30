@@ -10,6 +10,8 @@ import android.support.v7.widget.Toolbar;
 
 import butterknife.ButterKnife;
 import smartbook.hutech.edu.smartbook.R;
+import smartbook.hutech.edu.smartbook.common.view.LoadingDialogView;
+import smartbook.hutech.edu.smartbook.utils.SystemUtils;
 
 /**
  * Created by hienlt0610 on 5/14/2017.
@@ -18,6 +20,7 @@ import smartbook.hutech.edu.smartbook.R;
 public abstract class BaseActivity extends AppCompatActivity {
 
     public Toolbar mToolbar;
+    private LoadingDialogView mDialogView;
 
 
     @Override
@@ -108,6 +111,23 @@ public abstract class BaseActivity extends AppCompatActivity {
         int count = fm.getBackStackEntryCount();
         for (int i = 0; i < count; ++i) {
             fm.popBackStack();
+        }
+    }
+
+    public void showLoading() {
+        if(SystemUtils.isNetworkAvailable(this))
+            if (mDialogView != null) {
+                mDialogView.show();
+            } else {
+                mDialogView = new LoadingDialogView(this);
+                mDialogView.setCanceledOnTouchOutside(false);
+                mDialogView.show();
+            }
+    }
+
+    public void dismissLoading() {
+        if (mDialogView != null) {
+            mDialogView.dismiss();
         }
     }
 }

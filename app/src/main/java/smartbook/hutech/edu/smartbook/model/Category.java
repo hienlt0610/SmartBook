@@ -6,7 +6,9 @@ package smartbook.hutech.edu.smartbook.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Category{
+import smartbook.hutech.edu.smartbook.common.BaseModel;
+
+public class Category extends BaseModel {
     private List<Book> mListBooks;
     private String mTitle;
 

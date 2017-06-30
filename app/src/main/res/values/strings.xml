@@ -10,4 +10,6 @@
     <string name="book_reader_page_move">Di chuyển nhanh</string>
     <string name="book_reader_input_page_to_move">Vui lòng nhập trang cần đến</string>
     <string name="book_reader_cannot_move">Không thể di chuyển tới trang 0</string>
+    <string name="error_network">Network Error</string>
+    <string name="error_no_internet">Không có kết nối internet. Vui lòng kiểm tra lại!</string>
 </resources>

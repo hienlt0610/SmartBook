@@ -5,11 +5,16 @@ import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
 
+import smartbook.hutech.edu.smartbook.common.BaseModel;
+
 /**
  * Created by hienl on 6/24/2017.
  */
 
-public class Book {
+public class Book extends BaseModel {
+    @SerializedName("id")
+    private Integer id;
+
     @SerializedName("bookTitle")
     private String mTitle;
 

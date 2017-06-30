@@ -5,5 +5,5 @@ package smartbook.hutech.edu.smartbook.common;
  */
 
 public class Constant {
-
+    public static final int CODE_REQUEST_DEFAULT = 1;
 }

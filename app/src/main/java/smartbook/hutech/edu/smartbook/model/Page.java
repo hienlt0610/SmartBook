@@ -4,11 +4,13 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+import smartbook.hutech.edu.smartbook.common.BaseModel;
+
 /**
  * Created by hienl on 6/24/2017.
  */
 
-public class Page {
+public class Page extends BaseModel {
     @SerializedName("pageNumber")
     private int pageNumber;
 
