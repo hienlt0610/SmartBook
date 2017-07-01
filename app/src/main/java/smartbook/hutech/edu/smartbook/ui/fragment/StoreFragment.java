@@ -8,26 +8,25 @@ import android.widget.LinearLayout;
 
 import com.jude.easyrecyclerview.EasyRecyclerView;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import butterknife.BindView;
 import smartbook.hutech.edu.smartbook.R;
 import smartbook.hutech.edu.smartbook.adapter.CategoryAdapter;
 import smartbook.hutech.edu.smartbook.common.BaseFragment;
+import smartbook.hutech.edu.smartbook.common.BaseModel;
+import smartbook.hutech.edu.smartbook.common.interfaces.BookListener;
 import smartbook.hutech.edu.smartbook.model.Book;
-import smartbook.hutech.edu.smartbook.model.Category;
+import smartbook.hutech.edu.smartbook.model.CategoryList;
+import smartbook.hutech.edu.smartbook.ui.activity.BookReaderActivity;
 
-/**
+/*
  * Created by hienl on 6/23/2017.
  */
 
-public class StoreFragment extends BaseFragment {
+public class StoreFragment extends BaseFragment implements BookListener {
     @BindView(R.id.fragStore_rvCategory)
     EasyRecyclerView rvCategory;
 
     private CategoryAdapter mCategoryAdapter;
-    private List<Category> mCategoryList = new ArrayList<>();
 
     @Override
     protected int getResId() {
@@ -38,20 +37,38 @@ public class StoreFragment extends BaseFragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         init();
+        getData();
     }
 
-    private void init(){
-        mCategoryAdapter = new CategoryAdapter(getActivity(),mCategoryList);
-        rvCategory.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false));
-
-        for (int i = 0; i < 10; i++) {
-            Category category = new Category();
-            for (int j = 0; j < 5; j++) {
-                category.getListBooks().add(new Book());
-            }
-            mCategoryAdapter.add(category);
+    @Override
+    public void onDataResponse(int nCode, BaseModel nData) {
+        if (nData instanceof CategoryList) {
+            CategoryList model = (CategoryList) nData;
+            mCategoryAdapter.addAll(model.getList());
         }
+        dismissLoading();
+    }
 
+    private void init() {
+        mCategoryAdapter = new CategoryAdapter(getActivity());
+        rvCategory.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false));
         rvCategory.setAdapter(mCategoryAdapter);
+        mCategoryAdapter.setOnBookListener(this);
+    }
+
+    private void getData() {
+        showLoading();
+        mApiClient.getCategory();
+    }
+
+    @Override
+    public void onBookItemClick(int categoryPos, int bookPos) {
+        Book book = mCategoryAdapter.getBook(categoryPos, bookPos);
+        BookReaderActivity.start(getActivity(), book);
+    }
+
+    @Override
+    public void onClickMore(int categoryPos) {
+
     }
 }

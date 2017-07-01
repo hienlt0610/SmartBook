@@ -5,10 +5,9 @@ package smartbook.hutech.edu.smartbook.common.network.builder;
 
 import com.google.gson.JsonObject;
 
-import java.lang.reflect.Type;
-
 import retrofit2.Call;
+import smartbook.hutech.edu.smartbook.common.BaseModel;
 
 public interface ApiRequestListener {
-    void onRequestApi(int nCode, Type mType, Call<JsonObject> call);
+    void onRequestApi(int nCode, Class<? extends BaseModel> _class, Call<JsonObject> call);
 }

@@ -5,12 +5,11 @@ package smartbook.hutech.edu.smartbook.common.network.builder;
 
 import com.google.gson.JsonObject;
 
-import java.lang.reflect.Type;
-
 import retrofit2.Call;
+import smartbook.hutech.edu.smartbook.common.BaseModel;
 import smartbook.hutech.edu.smartbook.common.Constant;
 import smartbook.hutech.edu.smartbook.common.network.api.HomeApi;
-import smartbook.hutech.edu.smartbook.model.Category;
+import smartbook.hutech.edu.smartbook.model.CategoryList;
 
 public class ApiClient {
     private ApiRequestListener mListener;
@@ -19,15 +18,14 @@ public class ApiClient {
         this.mListener = listener;
     }
 
-    private void requestApi(Type nType, Call<JsonObject> call) {
+    private void requestApi(Class<? extends BaseModel> _class, Call<JsonObject> call) {
         if (mListener != null) {
-            mListener.onRequestApi(Constant.CODE_REQUEST_DEFAULT, nType, call);
+            mListener.onRequestApi(Constant.CODE_REQUEST_DEFAULT, _class, call);
         }
     }
 
     public void getCategory() {
-        ApiParams params = new ApiParams();
         HomeApi api = ApiGenerator.getInstance().createService(HomeApi.class);
-        requestApi((Type) new Category(), api.getCategory(params.getParams()));
+        requestApi(CategoryList.class, api.getCategory());
     }
 }
