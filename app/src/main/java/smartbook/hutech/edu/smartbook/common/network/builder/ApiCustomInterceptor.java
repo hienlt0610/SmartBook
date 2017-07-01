@@ -3,6 +3,8 @@ package smartbook.hutech.edu.smartbook.common.network.builder;
  * Created by Nhat Hoang on 30/06/2017.
  */
 
+import android.util.Log;
+
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -26,6 +28,7 @@ public class ApiCustomInterceptor implements Interceptor {
                 throw new IOException(root.opt("error").toString());
             }
             if (root.has("data")) {
+                Log.d("DATA",root.opt("data").toString());
                 return response.newBuilder()
                         .message("Successful")
                         .body(ResponseBody.create(response.body().contentType(),

@@ -12,10 +12,18 @@ import timber.log.Timber;
  */
 
 public class App extends Application {
+
+    private static App instance;
+
     @Override
     public void onCreate() {
         super.onCreate();
         Timber.plant(new Timber.DebugTree());
+        instance = this;
         Iconics.registerFont(new MaterialDesignIconic());
+    }
+
+    public static App getApp(){
+        return instance;
     }
 }

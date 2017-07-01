@@ -21,20 +21,32 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import smartbook.hutech.edu.smartbook.R;
 import smartbook.hutech.edu.smartbook.common.interfaces.BookListener;
+import smartbook.hutech.edu.smartbook.model.Book;
 import smartbook.hutech.edu.smartbook.model.Category;
 
 public class CategoryAdapter extends RecyclerArrayAdapter<Category> {
 
     private BookListener onBookListener;
 
-    public CategoryAdapter(Context context, List<Category> objects) {
-        super(context, objects);
+    public CategoryAdapter(Context context) {
+        super(context);
     }
+
 
     @Override
     public BaseViewHolder OnCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(getContext()).inflate(R.layout.item_category,parent,false);
         return new CategoryViewHolder(view);
+    }
+    public Book getBook(int posCate, int posBook){
+        Category category = getItem(posCate);
+        if(category != null){
+            List<Book> bookList = category.getListBooks();
+            if(posBook < bookList.size()){
+                return bookList.get(posBook);
+            }
+        }
+        return null;
     }
 
     public void setOnBookListener(BookListener onBookListener) {
@@ -52,7 +64,7 @@ public class CategoryAdapter extends RecyclerArrayAdapter<Category> {
         @Override
         public void setData(Category data) {
             super.setData(data);
-            //tvCategoryName.setText(data.getTitle());
+            tvCategoryName.setText(data.getTitle());
             bookAdapter.clear();
             bookAdapter.addAll(data.getListBooks());
         }

@@ -13,9 +13,9 @@ import smartbook.hutech.edu.smartbook.common.BaseModel;
 
 public class Book extends BaseModel {
     @SerializedName("id")
-    private Integer id;
+    private Integer mBookId;
 
-    @SerializedName("bookTitle")
+    @SerializedName("title")
     private String mTitle;
 
     @SerializedName("author")
@@ -24,13 +24,15 @@ public class Book extends BaseModel {
     @SerializedName("description")
     private String mDescription;
 
-    @SerializedName("bookCover")
+    @SerializedName("cover")
     private String mCover;
 
     @SerializedName("download")
     private String mDownload;
 
-    @SerializedName("pageList")
+    @SerializedName("demoPage")
+    private List<String> mDemoPage;
+
     private List<Page> mPageList;
 
     public String getTitle() {
@@ -82,5 +84,17 @@ public class Book extends BaseModel {
 
     public void setPageList(List<Page> pageList) {
         mPageList = pageList;
+    }
+
+    public Integer getBookId() {
+        return mBookId;
+    }
+
+    public List<String> getmDemoPage() {
+        return mDemoPage;
+    }
+
+    public void setmDemoPage(List<String> mDemoPage) {
+        this.mDemoPage = mDemoPage;
     }
 }
