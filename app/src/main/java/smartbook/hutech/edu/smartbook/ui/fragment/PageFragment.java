@@ -20,7 +20,7 @@ import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
 import smartbook.hutech.edu.smartbook.R;
 import smartbook.hutech.edu.smartbook.common.BaseFragment;
-import smartbook.hutech.edu.smartbook.common.view.BookImageView;
+import smartbook.hutech.edu.smartbook.common.view.bookview.BookImageView;
 import smartbook.hutech.edu.smartbook.model.Page;
 
 /**
@@ -96,6 +96,17 @@ public class PageFragment extends BaseFragment {
         if (mBookImageView != null) {
             mBookImageView.resetZoom();
         }
+    }
+
+    public boolean isHighlight() {
+        if (mBookImageView != null) {
+            return mBookImageView.isHighlightMode();
+        }
+        return false;
+    }
+
+    public BookImageView getBookImageView() {
+        return mBookImageView;
     }
 
     @Override

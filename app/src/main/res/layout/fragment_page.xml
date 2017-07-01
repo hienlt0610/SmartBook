@@ -4,7 +4,7 @@
               android:layout_height="match_parent"
               android:orientation="vertical">
 
-    <smartbook.hutech.edu.smartbook.common.view.BookImageView
+    <smartbook.hutech.edu.smartbook.common.view.bookview.BookImageView
         android:id="@+id/fragmentPage_imgBook"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>

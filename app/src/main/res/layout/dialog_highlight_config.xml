@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:padding="@dimen/_10dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/_5dp"
+        android:text="Chọn màu"
+        android:textSize="@dimen/text_large"
+        android:textStyle="bold"/>
+
+    <GridView
+        android:id="@+id/dialogHighligh_gridview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_10dp"
+        android:gravity="center"
+        android:numColumns="6"
+        android:stretchMode="spacingWidthUniform"
+        android:verticalSpacing="@dimen/_10dp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_1dp"
+        android:layout_marginBottom="@dimen/_10dp"
+        android:layout_marginTop="@dimen/_10dp"
+        android:background="@color/material_color_blue_grey_300"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="@dimen/_5dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chọn kích cỡ: "
+            android:textSize="@dimen/text_large"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/dialogHighligh_tv_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_large"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/dialogHighligh_seek_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

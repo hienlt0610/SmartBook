@@ -60,10 +60,11 @@
                 android:text="{gmi-close}"
                 android:textAlignment="center"
                 android:textColor="@color/material_color_white"
-                android:textSize="24dp"/>
+                android:textSize="24dp"
+                android:visibility="invisible"/>
 
             <com.mikepenz.iconics.view.IconicsButton
-                android:id="@+id/activityBookViewer_btn_acion_highlight"
+                android:id="@+id/activityBookViewer_btn_action_highlight"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1"
@@ -99,4 +100,14 @@
                 android:textSize="24dp"/>
         </LinearLayout>
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/activityBookViewer_tv_empty_page"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:text="@string/book_reader_empty_page_error"
+        android:textSize="@dimen/text_normal"
+        android:visibility="gone"/>
 </RelativeLayout>

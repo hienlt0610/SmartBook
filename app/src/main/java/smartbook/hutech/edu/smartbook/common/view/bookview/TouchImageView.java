@@ -1,4 +1,4 @@
-package smartbook.hutech.edu.smartbook.common.view;
+package smartbook.hutech.edu.smartbook.common.view.bookview;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -50,6 +50,8 @@ public class TouchImageView extends ImageView {
     //
     protected int viewWidth, viewHeight, prevViewWidth, prevViewHeight;
     protected float focusX, focusY;
+
+    protected boolean isEnable = true;
 
     ;
     //
@@ -907,6 +909,9 @@ public class TouchImageView extends ImageView {
 
         @Override
         public boolean onTouch(View v, MotionEvent event) {
+            if (!isEnable) {
+                return false;
+            }
             mScaleDetector.onTouchEvent(event);
             mGestureDetector.onTouchEvent(event);
             PointF curr = new PointF(event.getX(), event.getY());
@@ -958,7 +963,7 @@ public class TouchImageView extends ImageView {
             //
             // indicate event was handled
             //
-            return onTouchEvent(event);
+            return false;
         }
     }
 

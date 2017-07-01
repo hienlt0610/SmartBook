@@ -30,8 +30,40 @@ import smartbook.hutech.edu.smartbook.utils.SystemUtils;
 
 public abstract class BaseFragment extends Fragment implements ApiResponseListener {
 
-    Unbinder unbinder;
     public ApiClient mApiClient;
+    Unbinder unbinder;
+    ApiRequestListener requestListener = new ApiRequestListener() {
+        @Override
+        public void onRequestApi(final int nCode, final Type nType, final Call<JsonObject> call) {
+            boolean isNetwork = SystemUtils.isNetworkAvailable(getActivity());
+            if (call != null && isNetwork) {
+                if (call.isExecuted()) {
+                    call.cancel();
+                }
+                call.enqueue(new Callback<JsonObject>() {
+                    @Override
+                    public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                        BaseModel mData = null;
+                        if (response.body() != null) {
+                            Gson gson = new Gson();
+                            mData = gson.fromJson(response.body(), nType);
+                        }
+                        onDataResponse(nCode, mData);
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<JsonObject> call, Throwable t) {
+                        dismissLoading();
+                    }
+                });
+            } else {
+                if (!isNetwork)
+                    SystemUtils.showAlert(getActivity(), getActivity().getString(R.string.error_network),
+                            getActivity().getString(R.string.error_no_internet), null);
+            }
+        }
+    };
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -81,39 +113,6 @@ public abstract class BaseFragment extends Fragment implements ApiResponseListen
         unbinder.unbind();
     }
 
-    ApiRequestListener requestListener = new ApiRequestListener() {
-        @Override
-        public void onRequestApi(final int nCode, final Type nType, final Call<JsonObject> call) {
-            boolean isNetwork = SystemUtils.isNetworkAvailable(getActivity());
-            if (call != null && isNetwork) {
-                if (call.isExecuted()) {
-                    call.cancel();
-                }
-                call.enqueue(new Callback<JsonObject>() {
-                    @Override
-                    public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                        BaseModel mData = null;
-                        if (response.body() != null) {
-                            Gson gson = new Gson();
-                            mData = gson.fromJson(response.body(), nType);
-                        }
-                        onDataResponse(nCode, mData);
-
-                    }
-
-                    @Override
-                    public void onFailure(Call<JsonObject> call, Throwable t) {
-                        dismissLoading();
-                    }
-                });
-            } else {
-                if (!isNetwork)
-                    SystemUtils.showAlert(getActivity(), getActivity().getString(R.string.error_network),
-                            getActivity().getString(R.string.error_no_internet), null);
-            }
-        }
-    };
-
     public void showLoading() {
         if (getActivity() instanceof BaseActivity) {
             ((BaseActivity) getActivity()).showLoading();
@@ -126,4 +125,8 @@ public abstract class BaseFragment extends Fragment implements ApiResponseListen
         }
     }
 
+    @Override
+    public void onDataResponse(int nCode, BaseModel nData) {
+
+    }
 }

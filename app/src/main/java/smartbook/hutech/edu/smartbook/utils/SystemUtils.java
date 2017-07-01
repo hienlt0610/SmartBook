@@ -35,4 +35,8 @@ public class SystemUtils {
         builder.create().show();
     }
 
+    public static float getDensityScreen(Context context) {
+        return context.getResources().getDisplayMetrics().density;
+    }
+
 }
