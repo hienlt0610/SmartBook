@@ -12,7 +12,7 @@ public class BitmapUtils {
         if (bitmap == null || (bitmap.getWidth() == 0 || bitmap.getHeight() == 0)) {
             return false;
         }
-        bitmap = resize(bitmap, 100, 100);
+        bitmap = scale(bitmap, 100, 100);
         for (int x = 0; x < bitmap.getWidth(); x++) {
             for (int y = 0; y < bitmap.getHeight(); y++) {
                 if (bitmap.getPixel(x, y) != Color.TRANSPARENT) {
@@ -23,7 +23,7 @@ public class BitmapUtils {
         return true;
     }
 
-    public static Bitmap resize(Bitmap image, int maxWidth, int maxHeight) {
+    public static Bitmap scale(Bitmap image, int maxWidth, int maxHeight) {
         if (maxHeight > 0 && maxWidth > 0) {
             int width = image.getWidth();
             int height = image.getHeight();
