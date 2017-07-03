@@ -2,6 +2,7 @@ package smartbook.hutech.edu.smartbook.common.view.bookview;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -10,33 +11,44 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import smartbook.hutech.edu.smartbook.R;
+import smartbook.hutech.edu.smartbook.common.Constant;
+import smartbook.hutech.edu.smartbook.common.interfaces.IBookViewAction;
 import smartbook.hutech.edu.smartbook.model.HighlightConfig;
+import smartbook.hutech.edu.smartbook.model.bookviewer.BookItemModel;
+import smartbook.hutech.edu.smartbook.model.bookviewer.CoordinateModel;
 import smartbook.hutech.edu.smartbook.utils.BitmapUtils;
-import smartbook.hutech.edu.smartbook.utils.SystemUtils;
+import smartbook.hutech.edu.smartbook.utils.ScreenUtils;
+import smartbook.hutech.edu.smartbook.utils.StringUtils;
+import timber.log.Timber;
 
 /**
  * Created by hienl on 6/24/2017.
  */
 
-public class BookImageView extends TouchImageView {
+public class BookImageView extends TouchImageView implements IBookViewAction {
     float[] values = new float[9];
-    private List<RectF> mRectFs;
+    private List<Rect> mRectList;
     private List<String> mMessage;
     private int selected = -1;
     private PointF last = new PointF();
     private BrushType mBrushType = BrushType.NONE;
-    private Paint mPaintLine;
-    private Paint mPaintHighlight;
-    private Paint mPaintEarse;
+    private Paint mLinePaint;
+    private Paint mBitmapPaint;
+    private Paint mEarsePaint;
     private HighlightConfig mHighlightConfig;
     private float mDensityScreen;
     private Canvas mCanvasHighlight;
@@ -44,6 +56,21 @@ public class BookImageView extends TouchImageView {
     private Path mPathTemp;
     private Path mPath;
     private boolean mIsCleared;
+    private List<BookItemModel> mListBookItem;
+    private Bitmap mBmpAudio;
+    private Matrix mMatrixAudio;
+    private IBookViewAction mIBookViewAction;
+    private Paint mCornerPaint;
+    private Paint mFieldBgPaint;
+    private Paint mTextPaint;
+
+    private int mCornerWidth = 7;
+    private int mCornerRound = 10;
+    private int mTextSize = 55;
+    private float mScale;
+    private Map<Integer, String> mResults;
+    private Rect mBound;
+    private int mItemFocus;
 
     public BookImageView(Context context) {
         super(context);
@@ -57,50 +84,55 @@ public class BookImageView extends TouchImageView {
 
     private void init() {
         mDensityScreen = getContext().getResources().getDisplayMetrics().density;
-        mRectFs = new ArrayList<>();
-        mDensityScreen = SystemUtils.getDensityScreen(getContext());
+        mRectList = new ArrayList<>();
+        mDensityScreen = ScreenUtils.getDensityScreen(getContext());
+        mResults = new HashMap<>();
+        mBound = new Rect();
         initResourceDraw();
-        initDummyData();
     }
+
 
     private void initResourceDraw() {
         mHighlightConfig = new HighlightConfig();
-        mPaintLine = new Paint();
-        mPaintLine.setStyle(Paint.Style.STROKE);
-        mPaintLine.setDither(true);
-        mPaintLine.setStrokeCap(Paint.Cap.ROUND);
+        mLinePaint = new Paint();
+        mLinePaint.setStyle(Paint.Style.STROKE);
+        mLinePaint.setDither(true);
+        mLinePaint.setStrokeCap(Paint.Cap.ROUND);
 
-        mPaintHighlight = new Paint();
-        mPaintHighlight.setAntiAlias(true);
-        mPaintHighlight.setFilterBitmap(true);
-        mPaintHighlight.setDither(true);
+        mBitmapPaint = new Paint();
+        mBitmapPaint.setAntiAlias(true);
+        mBitmapPaint.setFilterBitmap(true);
+        mBitmapPaint.setDither(true);
 
-        mPaintEarse = new Paint();
-        mPaintEarse.setAlpha(0);
-        mPaintEarse.setStrokeJoin(Paint.Join.ROUND);
-        mPaintEarse.setStrokeCap(Paint.Cap.ROUND);
-        mPaintEarse.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-        mPaintEarse.setStyle(Paint.Style.STROKE);
-        mPaintEarse.setAntiAlias(true);
-    }
+        mEarsePaint = new Paint();
+        mEarsePaint.setAlpha(0);
+        mEarsePaint.setStrokeJoin(Paint.Join.ROUND);
+        mEarsePaint.setStrokeCap(Paint.Cap.ROUND);
+        mEarsePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
+        mEarsePaint.setStyle(Paint.Style.STROKE);
+        mEarsePaint.setAntiAlias(true);
 
-    private void initDummyData() {
-        mRectFs.add(new RectF(597, 569, 703, 632));
-        mRectFs.add(new RectF(758, 536, 853, 592));
-        mRectFs.add(new RectF(702, 649, 796, 697));
-        mRectFs.add(new RectF(707, 722, 823, 764));
-        mRectFs.add(new RectF(528, 1272, 706, 1458));
-        mRectFs.add(new RectF(847, 1272, 1026, 1451));
-        mRectFs.add(new RectF(646, 1872, 835, 2078));
+        mCornerPaint = new Paint();
+        mCornerPaint.setAntiAlias(true);
+        mCornerPaint.setColor(ContextCompat.getColor(getContext(), R.color.material_color_amber_800));
+        mCornerPaint.setStyle(Paint.Style.STROKE);
 
-        mMessage = new ArrayList<>();
-        mMessage.add("Mắt trái");
-        mMessage.add("Mắt phải");
-        mMessage.add("Mũi");
-        mMessage.add("Miệng");
-        mMessage.add("Vếu trái");
-        mMessage.add("Vếu phải");
-        mMessage.add("aHihi!!!");
+        mFieldBgPaint = new Paint();
+        mFieldBgPaint.setAntiAlias(true);
+        mFieldBgPaint.setColor(Color.WHITE);
+        mFieldBgPaint.setStyle(Paint.Style.FILL);
+
+        mTextPaint = new Paint();
+        mTextPaint.setColor(Color.BLACK);
+        mTextPaint.setAntiAlias(true);
+
+        /* Set the options */
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        opts.inDither = true;
+        opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        opts.inScaled = false; /* Flag for no scalling */
+        mBmpAudio = BitmapFactory.decodeResource(getResources(), R.drawable.ic_audio, opts);
+        mMatrixAudio = new Matrix();
     }
 
     @Override
@@ -115,22 +147,32 @@ public class BookImageView extends TouchImageView {
                     mIsCleared = false;
                     mPathTemp = new Path();
                     mPath = new Path();
-                    if (imgPoint.x >= 0 && imgPoint.y >= 0) {
-                        mPathTemp.moveTo(event.getX(), event.getY());
-                        mPath.moveTo(imgPoint.x, imgPoint.y);
-                    }
+                    mPathTemp.moveTo(event.getX(), event.getY());
+                    mPath.moveTo(imgPoint.x, imgPoint.y);
                 } else if (mBrushType == BrushType.EARSE) {
                     mPath = new Path();
                     mPath.moveTo(imgPoint.x, imgPoint.y);
+                } else {
+                    //Detect item click
+                    for (int i = 0; i < mRectList.size(); i++) {
+                        if (mRectList.get(i).contains((int) imgPoint.x, (int) imgPoint.y)) {
+                            BookItemModel item = mListBookItem.get(i);
+                            boolean isFocusAble = item.getItemType().equals(Constant.SELECT_TYPE) || item.getItemType().equals(Constant.INPUT_TYPE);
+                            if (isFocusAble) {
+                                mItemFocus = i;
+                                invalidate();
+                            }
+                            break;
+                        }
+                    }
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (mBrushType == BrushType.HIGHLIGHT) {
-                    if (imgPoint.x > 0 && imgPoint.y > 0) {
-                        mPathTemp.lineTo(event.getX(), event.getY());
-                        mPath.lineTo(imgPoint.x, imgPoint.y);
-                        invalidate();
-                    }
+                    mPathTemp.lineTo(event.getX(), event.getY());
+                    mPath.lineTo(imgPoint.x, imgPoint.y);
+                    invalidate();
+                    Timber.d(imgPoint.x + " - " + imgPoint.y);
                 } else if (mBrushType == BrushType.EARSE) {
                     mPath.lineTo(imgPoint.x, imgPoint.y);
                     invalidate();
@@ -138,26 +180,36 @@ public class BookImageView extends TouchImageView {
                 break;
             case MotionEvent.ACTION_UP:
                 if (mBrushType == BrushType.NONE) {
+                    //Remove focus
+                    mItemFocus = -1;
+                    invalidate();
                     boolean isMoved = (Math.abs(last.x - curr.x) > 10 && Math.abs(last.y - curr.y) > 10);
                     if (isMoved) {
                         break;
                     }
 
                     //Detect item click
-                    for (int i = 0; i < mRectFs.size(); i++) {
-                        if (mRectFs.get(i).contains(imgPoint.x, imgPoint.y)) {
-                            Toast.makeText(getContext(), mMessage.get(i), Toast.LENGTH_SHORT).show();
-                            selected = i;
-                            invalidate();
+                    for (int i = 0; i < mRectList.size(); i++) {
+                        if (mRectList.get(i).contains((int) imgPoint.x, (int) imgPoint.y)) {
+                            BookItemModel item = mListBookItem.get(i);
+                            if (item.getItemType().equals(Constant.INPUT_TYPE)) {
+                                onInputClick(i);
+                            } else if (item.getItemType().equals(Constant.AUDIO_TYPE)) {
+                                onAudioClick(i);
+                            } else if (item.getItemType().equals(Constant.SELECT_TYPE)) {
+                                onSelectBoxClick(i);
+                            } else if (item.getItemType().equals(Constant.NAVIGATE_TYPE)) {
+                                onNavigationClick(i);
+                            }
                             break;
                         }
                     }
                 } else if (mBrushType == BrushType.HIGHLIGHT) {
                     //Draw path to image
-                    mPaintLine.setStrokeWidth(mHighlightConfig.getStoreWidth());
-                    mPaintLine.setColor(mHighlightConfig.getColor());
-                    mPaintLine.setAlpha(alpha(50));
-                    mCanvasHighlight.drawPath(mPath, mPaintLine);
+                    mLinePaint.setStrokeWidth(mHighlightConfig.getStoreWidth());
+                    mLinePaint.setColor(mHighlightConfig.getColor());
+                    mLinePaint.setAlpha(alpha(50));
+                    mCanvasHighlight.drawPath(mPath, mLinePaint);
                     mPathTemp = null;
                     invalidate();
                 }
@@ -170,9 +222,10 @@ public class BookImageView extends TouchImageView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-//        onDrawItem(canvas);
+        mScale = getScale();
+        onDrawItem(canvas);
         if (mBitmapHighlight != null) {
-            canvas.drawBitmap(mBitmapHighlight, matrix, mPaintHighlight);
+            canvas.drawBitmap(mBitmapHighlight, matrix, mBitmapPaint);
         }
         onDrawHighlight(canvas);
         onEarseHighlight(canvas);
@@ -182,32 +235,138 @@ public class BookImageView extends TouchImageView {
         if (!isEarseMode()) {
             return;
         }
-        mPaintEarse.setStrokeWidth(mHighlightConfig.getStoreWidth());
-        mCanvasHighlight.drawPath(mPath, mPaintEarse);
+        mEarsePaint.setStrokeWidth(mHighlightConfig.getStoreWidth());
+        mCanvasHighlight.drawPath(mPath, mEarsePaint);
     }
 
     private void onDrawHighlight(Canvas canvas) {
         if (isHighlightMode() && mPathTemp != null) {
-            mPaintLine.setStrokeWidth(mHighlightConfig.getStoreWidth() * getScale());
-            mPaintLine.setColor(mHighlightConfig.getColor());
-            mPaintLine.setAlpha(alpha(50));
-            canvas.drawPath(mPathTemp, mPaintLine);
+            mLinePaint.setStrokeWidth(mHighlightConfig.getStoreWidth() * getScale());
+            mLinePaint.setColor(mHighlightConfig.getColor());
+            mLinePaint.setAlpha(alpha(50));
+            canvas.drawPath(mPathTemp, mLinePaint);
         }
     }
 
     private void onDrawItem(Canvas canvas) {
-        Paint paint = new Paint();
-        paint.setColor(Color.RED);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(5);
-        for (RectF rectF : mRectFs) {
-            if (selected != -1 && mRectFs.get(selected) == rectF) {
-                paint.setColor(Color.GREEN);
+        int i = 0;
+        for (Rect rect : mRectList) {
+            BookItemModel item = mListBookItem.get(i);
+            PointF from = pointFromBitmapPixel(rect.left, rect.top);
+            PointF to = pointFromBitmapPixel(rect.right, rect.bottom);
+            if (item.getItemType().equals(Constant.INPUT_TYPE)) {
+                drawFieldInputItem(canvas, from, to, i);
+            } else if (item.getItemType().equals(Constant.AUDIO_TYPE)) {
+                drawAudioItem(canvas, from, to, i);
+            } else if (item.getItemType().equals(Constant.SELECT_TYPE)) {
+                drawSelectItem(canvas, from, to, i);
+            } else if (item.getItemType().equals(Constant.NAVIGATE_TYPE)) {
+                drawNavigateItem(canvas, from, to, i);
             }
-            PointF from = pointFromBitmapPixel(rectF.left, rectF.top);
-            PointF to = pointFromBitmapPixel(rectF.right, rectF.bottom);
-            canvas.drawRect(from.x, from.y, to.x, to.y, paint);
-            paint.setColor(Color.RED);
+            i++;
+        }
+    }
+
+    /**
+     * Draw navigate item
+     *
+     * @param canvas   Canvas
+     * @param from     Draw from position (Calculated according to the original image)
+     * @param to       Draw to position (Calculated according to the original image)
+     * @param position Index of item in list item
+     */
+    private void drawNavigateItem(Canvas canvas, PointF from, PointF to, int position) {
+
+    }
+
+    /**
+     * Draw select item
+     *
+     * @param canvas   Canvas
+     * @param from     Draw from position (Calculated according to the original image)
+     * @param to       Draw to position (Calculated according to the original image)
+     * @param position Index of item in list item
+     */
+    private void drawSelectItem(Canvas canvas, PointF from, PointF to, int position) {
+        RectF rectF = new RectF(from.x, from.y, to.x, to.y);
+        int strokeWidth = (int) (mCornerWidth * mScale);
+        int cornerRound = (int) (mCornerRound * mScale);
+        mCornerPaint.setStrokeWidth(strokeWidth);
+
+        int cornerColor;
+        if (mItemFocus == position) {
+            cornerColor = ContextCompat.getColor(getContext(), R.color.material_color_indigo_400);
+        } else {
+            cornerColor = ContextCompat.getColor(getContext(), R.color.material_color_amber_800);
+        }
+        mCornerPaint.setColor(cornerColor);
+
+        canvas.drawRoundRect(rectF, cornerRound, cornerRound, mFieldBgPaint);
+        canvas.drawRoundRect(rectF, cornerRound, cornerRound, mCornerPaint);
+
+        //Draw result text
+        String result = mResults.get(position);
+        if (StringUtils.isNotEmpty(result)) {
+            int textSize = (int) (mTextSize * mScale);
+            mTextPaint.setTextSize(textSize);
+            mTextPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+            mTextPaint.getTextBounds(result, 0, result.length(), mBound);
+
+            float fromTextX = from.x + ((rectF.width() - mBound.width()) / 2);
+            float fromTextY = from.y + mBound.height() + ((rectF.height() - mBound.height()) / 2);
+            canvas.drawText(result, fromTextX, fromTextY, mTextPaint);
+        }
+    }
+
+    /**
+     * Draw audio item
+     *
+     * @param canvas   Canvas
+     * @param from     Draw from position (Calculated according to the original image)
+     * @param to       Draw to position (Calculated according to the original image)
+     * @param position Index of item in list item
+     */
+    private void drawAudioItem(Canvas canvas, PointF from, PointF to, int position) {
+        RectF rect = new RectF(from.x, from.y, to.x, to.y);
+        canvas.drawBitmap(mBmpAudio, null, rect, mBitmapPaint);
+    }
+
+    /**
+     * Draw field input item
+     *
+     * @param canvas   Canvas
+     * @param from     Draw from position (Calculated according to the original image)
+     * @param to       Draw to position (Calculated according to the original image)
+     * @param position Index of item in list item
+     */
+    private void drawFieldInputItem(Canvas canvas, PointF from, PointF to, int position) {
+        RectF rectF = new RectF(from.x, from.y, to.x, to.y);
+        int strokeWidth = (int) (mCornerWidth * mScale);
+        int cornerRound = (int) (mCornerRound * mScale);
+        mCornerPaint.setStrokeWidth(strokeWidth);
+
+        int cornerColor;
+        if (mItemFocus == position) {
+            cornerColor = ContextCompat.getColor(getContext(), R.color.material_color_indigo_400);
+        } else {
+            cornerColor = ContextCompat.getColor(getContext(), R.color.material_color_amber_800);
+        }
+        mCornerPaint.setColor(cornerColor);
+
+        canvas.drawRoundRect(rectF, cornerRound, cornerRound, mFieldBgPaint);
+        canvas.drawRoundRect(rectF, cornerRound, cornerRound, mCornerPaint);
+
+        //Draw result text
+        String result = mResults.get(position);
+        if (StringUtils.isNotEmpty(result)) {
+            int textSize = (int) (mTextSize * mScale);
+            mTextPaint.setTextSize(textSize);
+            mTextPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+            mTextPaint.getTextBounds(result, 0, result.length(), mBound);
+
+            float fromTextX = from.x + 10 * mScale;
+            float fromTextY = from.y + mBound.height() + ((rectF.height() - mBound.height()) / 2);
+            canvas.drawText(result, fromTextX, fromTextY, mTextPaint);
         }
     }
 
@@ -298,6 +457,71 @@ public class BookImageView extends TouchImageView {
      */
     private int alpha(int percent) {
         return ((percent * 255) / 100);
+    }
+
+    public void setListBookItem(List<BookItemModel> bookItem) {
+        mListBookItem = bookItem;
+        mapListItem();
+        invalidate();
+    }
+
+    public void setItemResult(String result, int position) {
+        mResults.put(position, result);
+        invalidate();
+    }
+
+    public String getItemResult(int position) {
+        if (mResults.containsKey(position)) {
+            return mResults.get(position);
+        }
+        return null;
+    }
+
+    private void mapListItem() {
+        if (mListBookItem == null) {
+            return;
+        }
+        mRectList.clear();
+        for (int i = 0; i < mListBookItem.size(); i++) {
+            BookItemModel item = mListBookItem.get(i);
+            CoordinateModel c = item.getCoordinate();
+            if (c != null) {
+                Rect rect = new Rect(c.getFromX(), c.getFromY(), c.getToX(), c.getToY());
+                mRectList.add(rect);
+            }
+        }
+    }
+
+    @Override
+    public void onInputClick(int position) {
+        if (mIBookViewAction != null) {
+            mIBookViewAction.onInputClick(position);
+        }
+    }
+
+    @Override
+    public void onAudioClick(int position) {
+        if (mIBookViewAction != null) {
+            mIBookViewAction.onAudioClick(position);
+        }
+    }
+
+    @Override
+    public void onSelectBoxClick(int position) {
+        if (mIBookViewAction != null) {
+            mIBookViewAction.onSelectBoxClick(position);
+        }
+    }
+
+    @Override
+    public void onNavigationClick(int position) {
+        if (mIBookViewAction != null) {
+            mIBookViewAction.onNavigationClick(position);
+        }
+    }
+
+    public void setBookActionListener(IBookViewAction IBookViewAction) {
+        mIBookViewAction = IBookViewAction;
     }
 
     public enum BrushType {

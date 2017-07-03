@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import smartbook.hutech.edu.smartbook.common.BaseModel;
+import smartbook.hutech.edu.smartbook.model.bookviewer.BookPageModel;
 
 /**
  * Created by hienl on 6/24/2017.
@@ -33,7 +34,7 @@ public class Book extends BaseModel {
     @SerializedName("demoPage")
     private List<String> mDemoPage;
 
-    private List<Page> mPageList;
+    private List<BookPageModel> mPageList;
 
     public String getTitle() {
         return mTitle;
@@ -75,14 +76,14 @@ public class Book extends BaseModel {
         mDownload = download;
     }
 
-    public List<Page> getPageList() {
+    public List<BookPageModel> getPageList() {
         if (mPageList == null) {
             mPageList = new ArrayList<>();
         }
         return mPageList;
     }
 
-    public void setPageList(List<Page> pageList) {
+    public void setPageList(List<BookPageModel> pageList) {
         mPageList = pageList;
     }
 
@@ -96,5 +97,9 @@ public class Book extends BaseModel {
 
     public void setmDemoPage(List<String> mDemoPage) {
         this.mDemoPage = mDemoPage;
+    }
+
+    public void setBookId(Integer bookId) {
+        mBookId = bookId;
     }
 }

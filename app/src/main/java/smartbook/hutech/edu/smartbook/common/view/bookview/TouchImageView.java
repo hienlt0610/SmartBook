@@ -74,7 +74,7 @@ public class TouchImageView extends ImageView {
     //
     // Size of image when it is stretched to fit view. Before and After rotation.
     //
-    private float matchViewWidth, matchViewHeight, prevMatchViewWidth, prevMatchViewHeight;
+    protected float matchViewWidth, matchViewHeight, prevMatchViewWidth, prevMatchViewHeight;
     private ScaleGestureDetector mScaleDetector;
     private GestureDetector mGestureDetector;
     private GestureDetector.OnDoubleTapListener doubleTapListener = null;

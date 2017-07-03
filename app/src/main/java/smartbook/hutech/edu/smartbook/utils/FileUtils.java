@@ -1,5 +1,6 @@
 package smartbook.hutech.edu.smartbook.utils;
 
+import android.content.Context;
 import android.os.Environment;
 
 import java.io.BufferedOutputStream;
@@ -23,6 +24,10 @@ import java.util.List;
  */
 
 public class FileUtils {
+
+    public static File getExternalFilesDir(Context context) {
+        return context.getExternalFilesDir(null);
+    }
 
     /**
      * Check the SD card
@@ -433,6 +438,13 @@ public class FileUtils {
     public static byte[] inputStream2Bytes(InputStream is) {
         if (is == null) return null;
         return input2OutputStream(is).toByteArray();
+    }
+
+    public static File separatorWith(File file, String name) {
+        if (file == null) return null;
+        if (StringUtils.isEmpty(name)) return file;
+        String newPath = file.getAbsolutePath() + File.separator + name;
+        return new File(newPath);
     }
 
 }
