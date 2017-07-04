@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.jude.easyrecyclerview.EasyRecyclerView;
 
@@ -17,6 +18,7 @@ import smartbook.hutech.edu.smartbook.common.interfaces.BookListener;
 import smartbook.hutech.edu.smartbook.model.Book;
 import smartbook.hutech.edu.smartbook.model.CategoryList;
 import smartbook.hutech.edu.smartbook.ui.activity.BookReaderActivity;
+import smartbook.hutech.edu.smartbook.utils.SystemUtils;
 
 /*
  * Created by hienl on 6/23/2017.
@@ -25,6 +27,8 @@ import smartbook.hutech.edu.smartbook.ui.activity.BookReaderActivity;
 public class StoreFragment extends BaseFragment implements BookListener {
     @BindView(R.id.fragStore_rvCategory)
     EasyRecyclerView rvCategory;
+    @BindView(R.id.fragStore_tvOffline)
+    TextView tvOffline;
 
     private CategoryAdapter mCategoryAdapter;
 
@@ -57,6 +61,12 @@ public class StoreFragment extends BaseFragment implements BookListener {
     }
 
     private void getData() {
+        boolean isNetwork = SystemUtils.isNetworkAvailable(getActivity());
+        if(!isNetwork){
+            tvOffline.setVisibility(View.VISIBLE);
+            rvCategory.setVisibility(View.GONE);
+            return;
+        }
         showLoading();
         mApiClient.getCategory();
     }
@@ -71,4 +81,5 @@ public class StoreFragment extends BaseFragment implements BookListener {
     public void onClickMore(int categoryPos) {
 
     }
+
 }
