@@ -7,24 +7,31 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.jude.easyrecyclerview.adapter.BaseViewHolder;
 import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
 
+import java.io.File;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import smartbook.hutech.edu.smartbook.R;
-import smartbook.hutech.edu.smartbook.model.Page;
+import smartbook.hutech.edu.smartbook.common.Common;
+import smartbook.hutech.edu.smartbook.model.bookviewer.BookPageModel;
+import smartbook.hutech.edu.smartbook.utils.FileUtils;
 
 /**
  * Created by hienl on 6/26/2017.
  */
 
-public class TableOfContentAdapter extends RecyclerArrayAdapter<Page> {
+public class TableOfContentAdapter extends RecyclerArrayAdapter<BookPageModel> {
 
-    public TableOfContentAdapter(Context context, List<Page> objects) {
+    File bookFolder;
+
+    public TableOfContentAdapter(Context context, String bookId, List<BookPageModel> objects) {
         super(context, objects);
+        bookFolder = Common.getFolderOfBook(bookId);
     }
 
     @Override
@@ -33,7 +40,7 @@ public class TableOfContentAdapter extends RecyclerArrayAdapter<Page> {
         return new ViewHolder(view);
     }
 
-    class ViewHolder extends BaseViewHolder<Page> {
+    class ViewHolder extends BaseViewHolder<BookPageModel> {
         @BindView(R.id.itemTableContent_img_page)
         ImageView mImagePage;
         @BindView(R.id.itemTableContent_tv_page_number)
@@ -45,10 +52,14 @@ public class TableOfContentAdapter extends RecyclerArrayAdapter<Page> {
         }
 
         @Override
-        public void setData(Page data) {
+        public void setData(BookPageModel data) {
             super.setData(data);
-            String pageNum = String.valueOf(getAdapterPosition() + 1);
+            String pageNum = String.valueOf(data.getPageIndex());
             mTvPage.setText(pageNum);
+            Glide.with(getContext())
+                    .load(FileUtils.separatorWith(bookFolder, data.getImagePath()))
+                    .fitCenter()
+                    .into(mImagePage);
         }
     }
 }

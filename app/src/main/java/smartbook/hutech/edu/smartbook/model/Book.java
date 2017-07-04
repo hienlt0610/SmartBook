@@ -2,11 +2,10 @@ package smartbook.hutech.edu.smartbook.model;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import smartbook.hutech.edu.smartbook.common.BaseModel;
-import smartbook.hutech.edu.smartbook.model.bookviewer.BookPageModel;
+import smartbook.hutech.edu.smartbook.model.bookviewer.BookListPageModel;
 
 /**
  * Created by hienl on 6/24/2017.
@@ -34,7 +33,7 @@ public class Book extends BaseModel {
     @SerializedName("demoPage")
     private List<String> mDemoPage;
 
-    private List<BookPageModel> mPageList;
+    private BookListPageModel mPageList;
 
     public String getTitle() {
         return mTitle;
@@ -76,14 +75,14 @@ public class Book extends BaseModel {
         mDownload = download;
     }
 
-    public List<BookPageModel> getPageList() {
+    public BookListPageModel getPageList() {
         if (mPageList == null) {
-            mPageList = new ArrayList<>();
+            mPageList = new BookListPageModel();
         }
         return mPageList;
     }
 
-    public void setPageList(List<BookPageModel> pageList) {
+    public void setPageList(BookListPageModel pageList) {
         mPageList = pageList;
     }
 

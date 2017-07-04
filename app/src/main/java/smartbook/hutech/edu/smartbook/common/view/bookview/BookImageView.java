@@ -33,7 +33,6 @@ import smartbook.hutech.edu.smartbook.model.bookviewer.CoordinateModel;
 import smartbook.hutech.edu.smartbook.utils.BitmapUtils;
 import smartbook.hutech.edu.smartbook.utils.ScreenUtils;
 import smartbook.hutech.edu.smartbook.utils.StringUtils;
-import timber.log.Timber;
 
 /**
  * Created by hienl on 6/24/2017.
@@ -68,9 +67,10 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
     private int mCornerRound = 10;
     private int mTextSize = 55;
     private float mScale;
-    private Map<Integer, String> mResults;
+    private Map<Integer, String> mAnswers;
     private Rect mBound;
     private int mItemFocus;
+    private boolean mIsHighlightSaveAble;
 
     public BookImageView(Context context) {
         super(context);
@@ -86,7 +86,7 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
         mDensityScreen = getContext().getResources().getDisplayMetrics().density;
         mRectList = new ArrayList<>();
         mDensityScreen = ScreenUtils.getDensityScreen(getContext());
-        mResults = new HashMap<>();
+        mAnswers = new HashMap<>();
         mBound = new Rect();
         initResourceDraw();
     }
@@ -144,12 +144,14 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
             case MotionEvent.ACTION_DOWN:
                 last.set(curr);
                 if (mBrushType == BrushType.HIGHLIGHT) {
+                    mIsHighlightSaveAble = true;
                     mIsCleared = false;
                     mPathTemp = new Path();
                     mPath = new Path();
                     mPathTemp.moveTo(event.getX(), event.getY());
                     mPath.moveTo(imgPoint.x, imgPoint.y);
                 } else if (mBrushType == BrushType.EARSE) {
+                    mIsHighlightSaveAble = true;
                     mPath = new Path();
                     mPath.moveTo(imgPoint.x, imgPoint.y);
                 } else {
@@ -172,7 +174,6 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
                     mPathTemp.lineTo(event.getX(), event.getY());
                     mPath.lineTo(imgPoint.x, imgPoint.y);
                     invalidate();
-                    Timber.d(imgPoint.x + " - " + imgPoint.y);
                 } else if (mBrushType == BrushType.EARSE) {
                     mPath.lineTo(imgPoint.x, imgPoint.y);
                     invalidate();
@@ -235,8 +236,10 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
         if (!isEarseMode()) {
             return;
         }
-        mEarsePaint.setStrokeWidth(mHighlightConfig.getStoreWidth());
-        mCanvasHighlight.drawPath(mPath, mEarsePaint);
+        if (mCanvasHighlight != null) {
+            mEarsePaint.setStrokeWidth(mHighlightConfig.getStoreWidth());
+            mCanvasHighlight.drawPath(mPath, mEarsePaint);
+        }
     }
 
     private void onDrawHighlight(Canvas canvas) {
@@ -305,7 +308,7 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
         canvas.drawRoundRect(rectF, cornerRound, cornerRound, mCornerPaint);
 
         //Draw result text
-        String result = mResults.get(position);
+        String result = mAnswers.get(position);
         if (StringUtils.isNotEmpty(result)) {
             int textSize = (int) (mTextSize * mScale);
             mTextPaint.setTextSize(textSize);
@@ -357,7 +360,7 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
         canvas.drawRoundRect(rectF, cornerRound, cornerRound, mCornerPaint);
 
         //Draw result text
-        String result = mResults.get(position);
+        String result = mAnswers.get(position);
         if (StringUtils.isNotEmpty(result)) {
             int textSize = (int) (mTextSize * mScale);
             mTextPaint.setTextSize(textSize);
@@ -373,9 +376,11 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
     @Override
     public void setImageBitmap(Bitmap bm) {
         super.setImageBitmap(bm);
-        mBitmapHighlight = Bitmap.createBitmap(bm.getWidth(), bm.getHeight(), Bitmap.Config.ARGB_8888);
-        mCanvasHighlight = new Canvas(mBitmapHighlight);
-        mCanvasHighlight.drawColor(Color.TRANSPARENT);
+        if (mBitmapHighlight == null) {
+            mBitmapHighlight = Bitmap.createBitmap(bm.getWidth(), bm.getHeight(), Bitmap.Config.ARGB_8888);
+            mCanvasHighlight = new Canvas(mBitmapHighlight);
+            mCanvasHighlight.drawColor(Color.TRANSPARENT);
+        }
     }
 
     @Override
@@ -434,6 +439,7 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
         if (mCanvasHighlight != null) {
             mCanvasHighlight.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             mIsCleared = true;
+            mIsHighlightSaveAble = true;
             invalidate();
         }
     }
@@ -466,13 +472,13 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
     }
 
     public void setItemResult(String result, int position) {
-        mResults.put(position, result);
+        mAnswers.put(position, result);
         invalidate();
     }
 
     public String getItemResult(int position) {
-        if (mResults.containsKey(position)) {
-            return mResults.get(position);
+        if (mAnswers.containsKey(position)) {
+            return mAnswers.get(position);
         }
         return null;
     }
@@ -522,6 +528,25 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
 
     public void setBookActionListener(IBookViewAction IBookViewAction) {
         mIBookViewAction = IBookViewAction;
+    }
+
+    public void setBitmapHighlight(Bitmap bitmapHighlight) {
+        mBitmapHighlight = bitmapHighlight;
+        if (mBitmapHighlight != null) {
+            mCanvasHighlight = new Canvas(mBitmapHighlight);
+            invalidate();
+        }
+    }
+
+    public void setAnswers(Map<Integer, String> answers) {
+        if (answers != null) {
+            mAnswers = answers;
+        }
+        invalidate();
+    }
+
+    public boolean isHighlightSaveAble() {
+        return mIsHighlightSaveAble;
     }
 
     public enum BrushType {

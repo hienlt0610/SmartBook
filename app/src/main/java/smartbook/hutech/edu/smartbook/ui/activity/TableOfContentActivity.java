@@ -8,6 +8,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.MenuItem;
 
+import com.google.gson.Gson;
 import com.jude.easyrecyclerview.EasyRecyclerView;
 import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
 
@@ -17,8 +18,13 @@ import java.util.List;
 import butterknife.BindView;
 import smartbook.hutech.edu.smartbook.R;
 import smartbook.hutech.edu.smartbook.adapter.TableOfContentAdapter;
+import smartbook.hutech.edu.smartbook.common.App;
 import smartbook.hutech.edu.smartbook.common.BaseActivity;
-import smartbook.hutech.edu.smartbook.model.Page;
+import smartbook.hutech.edu.smartbook.database.Bookmarked;
+import smartbook.hutech.edu.smartbook.database.BookmarkedDao;
+import smartbook.hutech.edu.smartbook.model.bookviewer.BookListPageModel;
+import smartbook.hutech.edu.smartbook.model.bookviewer.BookPageModel;
+import smartbook.hutech.edu.smartbook.utils.StringUtils;
 
 /**
  * Created by hienl on 6/26/2017.
@@ -27,16 +33,25 @@ import smartbook.hutech.edu.smartbook.model.Page;
 public class TableOfContentActivity extends BaseActivity implements TabLayout.OnTabSelectedListener, RecyclerArrayAdapter.OnItemClickListener {
 
     public static final String EXTRA_PAGE_SELECTED = "EXTRA_PAGE_SELECTED";
+    public static final String EXTRA_BOOK_ID = "EXTRA_BOOK_ID";
+    public static final String EXTRA_PAGE_LIST = "EXTRA_PAGE_LIST";
 
     @BindView(R.id.activityTableOfContent_tab_layout)
     TabLayout mTabLayout;
     @BindView(R.id.activityTableOfContent_recycler_view)
     EasyRecyclerView mRvPage;
+    private String mBookId;
+    private BookListPageModel mPageList;
 
-    TableOfContentAdapter mTableOfContentAdapter;
+    private TableOfContentAdapter mTableOfContentAdapter;
+    private List<BookPageModel> mListBookmark;
+    private boolean mIsShowAll = true;
 
-    public static void start(Activity activity, int requestCode) {
+    public static void start(Activity activity, String bookId, BookListPageModel listPage, int requestCode) {
         Intent starter = new Intent(activity, TableOfContentActivity.class);
+        starter.putExtra(EXTRA_BOOK_ID, bookId);
+        String jsonListPage = new Gson().toJson(listPage);
+        starter.putExtra(EXTRA_PAGE_LIST, jsonListPage);
         activity.startActivityForResult(starter, requestCode);
     }
 
@@ -52,17 +67,42 @@ public class TableOfContentActivity extends BaseActivity implements TabLayout.On
     }
 
     private void init() {
+        initCommonData();
         initTab();
         initToolbar();
         initListPage();
+        initListBookmark();
+    }
+
+    private void initListBookmark() {
+        BookmarkedDao bookmarkedDao = App.getApp().getDaoSession().getBookmarkedDao();
+        List<Bookmarked> bookmarkeds = bookmarkedDao.queryBuilder()
+                .where(BookmarkedDao.Properties.Bid.eq(mBookId))
+                .orderAsc(BookmarkedDao.Properties.Page).list();
+        mListBookmark = new ArrayList<>();
+        for (BookPageModel bookPageModel : mPageList) {
+            for (Bookmarked bookmarked : bookmarkeds) {
+                if (bookmarked.getPage() == bookPageModel.getPageIndex()) {
+                    mListBookmark.add(bookPageModel);
+                }
+            }
+        }
+    }
+
+    private void initCommonData() {
+        Intent intent = getIntent();
+        mBookId = intent.getStringExtra(EXTRA_BOOK_ID);
+        String jsonPageList = intent.getStringExtra(EXTRA_PAGE_LIST);
+        if (StringUtils.isNotEmpty(jsonPageList)) {
+            mPageList = new Gson().fromJson(jsonPageList, BookListPageModel.class);
+        }
     }
 
     private void initListPage() {
-        List<Page> pages = new ArrayList<>();
-        for (int i = 0; i < 14; i++) {
-            pages.add(new Page());
+        if (mPageList == null) {
+            return;
         }
-        mTableOfContentAdapter = new TableOfContentAdapter(this, pages);
+        mTableOfContentAdapter = new TableOfContentAdapter(this, mBookId, mPageList);
         mRvPage.setLayoutManager(new GridLayoutManager(this, 3));
         mRvPage.getRecyclerView().setHasFixedSize(true);
         mRvPage.setAdapter(mTableOfContentAdapter);
@@ -108,13 +148,11 @@ public class TableOfContentActivity extends BaseActivity implements TabLayout.On
         int index = mTabLayout.getSelectedTabPosition();
         mTableOfContentAdapter.clear();
         if (index == 0) {
-            for (int i = 0; i < 20; i++) {
-                mTableOfContentAdapter.add(new Page());
-            }
+            mTableOfContentAdapter.addAll(mPageList);
+            mIsShowAll = true;
         } else {
-            for (int i = 0; i < 5; i++) {
-                mTableOfContentAdapter.add(new Page());
-            }
+            mTableOfContentAdapter.addAll(mListBookmark);
+            mIsShowAll = false;
         }
     }
 
@@ -136,7 +174,13 @@ public class TableOfContentActivity extends BaseActivity implements TabLayout.On
     @Override
     public void onItemClick(int position) {
         Intent intent = new Intent();
-        intent.putExtra(EXTRA_PAGE_SELECTED, position);
+        BookPageModel page;
+        if (mIsShowAll) {
+            page = mPageList.get(position);
+        } else {
+            page = mListBookmark.get(position);
+        }
+        intent.putExtra(EXTRA_PAGE_SELECTED, page.getPageIndex());
         setResult(RESULT_OK, intent);
         finish();
     }

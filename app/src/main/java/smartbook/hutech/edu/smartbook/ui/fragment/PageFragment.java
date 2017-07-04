@@ -15,35 +15,46 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.google.gson.Gson;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import smartbook.hutech.edu.smartbook.R;
+import smartbook.hutech.edu.smartbook.common.App;
 import smartbook.hutech.edu.smartbook.common.BaseFragment;
+import smartbook.hutech.edu.smartbook.common.Constant;
 import smartbook.hutech.edu.smartbook.common.interfaces.IBookViewAction;
+import smartbook.hutech.edu.smartbook.common.interfaces.ISaveHighlight;
 import smartbook.hutech.edu.smartbook.common.interfaces.ISwipePage;
 import smartbook.hutech.edu.smartbook.common.view.bookview.BookImageView;
+import smartbook.hutech.edu.smartbook.database.Answered;
+import smartbook.hutech.edu.smartbook.database.AnsweredDao;
 import smartbook.hutech.edu.smartbook.model.bookviewer.BookItemModel;
 import smartbook.hutech.edu.smartbook.model.bookviewer.BookPageModel;
 import smartbook.hutech.edu.smartbook.utils.FileUtils;
-import timber.log.Timber;
+import smartbook.hutech.edu.smartbook.utils.StringUtils;
 
 /**
  * Created by hienl on 6/24/2017.
  */
 public class PageFragment extends BaseFragment implements IBookViewAction {
+    private static final String EXTRA_BOOK_ID = "EXTRA_BOOK_ID";
     private static final String EXTRA_PAGE = "EXTRA_PAGE";
     private static final String EXTRA_ROOT_FOLDER = "EXTRA_ROOT_FOLDER";
     @BindView(R.id.fragmentPage_imgBook)
     BookImageView mBookImageView;
     private BookPageModel mPage;
-    private String mRootFolder;
+    private String mBookFolder;
+    private String mBookId;
+    private AnsweredDao mAnsweredDao;
 
-    public static PageFragment newInstance(BookPageModel page, String rootFolder) {
+    public static PageFragment newInstance(BookPageModel page, String bookId, String bookFolder) {
         Bundle args = new Bundle();
-        String json = new Gson().toJson(page);
-        args.putString(EXTRA_PAGE, json);
-        args.putString(EXTRA_ROOT_FOLDER, rootFolder);
+        String jsonPage = new Gson().toJson(page);
+        args.putString(EXTRA_PAGE, jsonPage);
+        args.putString(EXTRA_BOOK_ID, bookId);
+        args.putString(EXTRA_ROOT_FOLDER, bookFolder);
         PageFragment fragment = new PageFragment();
         fragment.setArguments(args);
         return fragment;
@@ -64,10 +75,20 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
             String string = bundle.getString(EXTRA_PAGE);
             mPage = new Gson().fromJson(string, BookPageModel.class);
         }
+
         boolean hasRootFolder = bundle != null && bundle.containsKey(EXTRA_ROOT_FOLDER);
         if (hasRootFolder) {
-            mRootFolder = bundle.getString(EXTRA_ROOT_FOLDER);
+            mBookFolder = bundle.getString(EXTRA_ROOT_FOLDER);
         }
+
+        boolean hasBookInfo = bundle != null && bundle.containsKey(EXTRA_BOOK_ID);
+        if (hasBookInfo) {
+            String string = bundle.getString(EXTRA_PAGE);
+            mBookId = bundle.getString(EXTRA_BOOK_ID);
+        }
+
+        //Init dao
+        mAnsweredDao = App.getApp().getDaoSession().getAnsweredDao();
     }
 
     @Override
@@ -75,9 +96,23 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
         super.onViewCreated(view, savedInstanceState);
         loadImage();
         loadListItem();
+        loadListAnswer();
 
         //Set listener
         mBookImageView.setBookActionListener(this);
+    }
+
+    private void loadListAnswer() {
+        if (mBookId != null && mPage != null) {
+            String bookId = String.valueOf(mBookId);
+            List<Answered> listAnswer = mAnsweredDao.queryBuilder().where(AnsweredDao.Properties.Bid.eq(bookId),
+                    AnsweredDao.Properties.Page.eq(mPage.getPageIndex())).list();
+            Map<Integer, String> mapAnswer = new HashMap<>();
+            for (Answered answered : listAnswer) {
+                mapAnswer.put(answered.getQuizIndex(), answered.getQuizAnswer());
+            }
+            mBookImageView.setAnswers(mapAnswer);
+        }
     }
 
     private void loadListItem() {
@@ -85,9 +120,21 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
     }
 
     public void loadImage() {
-        File bookFile = FileUtils.getFileByPath(mRootFolder);
+        File bookFile = FileUtils.getFileByPath(mBookFolder);
         File imageFile = FileUtils.separatorWith(bookFile, mPage.getImagePath());
-        Timber.d(imageFile.getAbsolutePath());
+
+        String fileName = StringUtils.leftPad(String.valueOf(mPage.getPageIndex()), 3, '0') + ".png";
+        File highlightFolder = FileUtils.separatorWith(bookFile, Constant.HIGHLIGHT_FOLDER_NAME);
+        File hightlightImageFile = FileUtils.separatorWith(highlightFolder, fileName);
+        if (FileUtils.isFileExists(hightlightImageFile)) {
+            Glide.with(this).load(hightlightImageFile).asBitmap().into(new SimpleTarget<Bitmap>() {
+                @Override
+                public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                    mBookImageView.setBitmapHighlight(resource);
+                }
+            });
+        }
+
         Glide.with(this).load(imageFile)
                 .asBitmap().into(new SimpleTarget<Bitmap>() {
             @Override
@@ -140,6 +187,11 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
                     @Override
                     public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
                         mBookImageView.setItemResult(input.toString(), position);
+                        if (mBookId != null) {
+                            String bookId = String.valueOf(mBookId);
+                            Answered answered = new Answered(null, mBookId, mPage.getPageIndex(), position, input.toString());
+                            mAnsweredDao.insertOrReplace(answered);
+                        }
                     }
                 }).show();
     }
@@ -160,6 +212,12 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
                     @Override
                     public void onSelection(MaterialDialog dialog, View itemView, int pos, CharSequence text) {
                         mBookImageView.setItemResult(text.toString(), position);
+                        if (mBookId != null) {
+                            String bookId = String.valueOf(mBookId);
+                            Answered answered = new Answered(null, bookId, mPage.getPageIndex(),
+                                    position, text.toString());
+                            mAnsweredDao.insertOrReplace(answered);
+                        }
                     }
                 }).show();
     }
@@ -172,6 +230,26 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
             int page = (int) Math.round((double) data.get(0));
             if (getActivity() instanceof ISwipePage) {
                 ((ISwipePage) getActivity()).swipePage(page);
+            }
+        }
+    }
+//
+//    @Override
+//    public void onHighlightDrawed() {
+//        if (getActivity() instanceof ISaveHighlight) {
+//            Bitmap bitmap = mBookImageView.getHighlightBitmap();
+//            ((ISaveHighlight) getActivity()).saveCurrentHighlight(bitmap);
+//        }
+//    }
+
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mBookImageView.isHighlightSaveAble()) {
+            if (getActivity() instanceof ISaveHighlight) {
+                Bitmap bitmap = mBookImageView.getHighlightBitmap();
+                ((ISaveHighlight) getActivity()).saveCurrentHighlight(mPage.getPageIndex(), bitmap);
             }
         }
     }

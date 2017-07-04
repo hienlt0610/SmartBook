@@ -3,6 +3,7 @@ package smartbook.hutech.edu.smartbook.ui.activity;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -25,7 +26,6 @@ import android.widget.Toast;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.iconics.view.IconicsButton;
 import com.mikepenz.material_design_iconic_typeface_library.MaterialDesignIconic;
@@ -42,19 +42,28 @@ import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
 import smartbook.hutech.edu.smartbook.R;
 import smartbook.hutech.edu.smartbook.adapter.BookReaderPagerAdapter;
+import smartbook.hutech.edu.smartbook.common.App;
 import smartbook.hutech.edu.smartbook.common.BaseActivity;
+import smartbook.hutech.edu.smartbook.common.Common;
 import smartbook.hutech.edu.smartbook.common.Constant;
+import smartbook.hutech.edu.smartbook.common.interfaces.ISaveHighlight;
 import smartbook.hutech.edu.smartbook.common.interfaces.ISwipePage;
 import smartbook.hutech.edu.smartbook.common.view.ExtendedViewPager;
 import smartbook.hutech.edu.smartbook.common.view.bookview.BookImageView;
 import smartbook.hutech.edu.smartbook.common.view.bookview.HighlightConfigDialog;
+import smartbook.hutech.edu.smartbook.database.Bookmarked;
+import smartbook.hutech.edu.smartbook.database.BookmarkedDao;
+import smartbook.hutech.edu.smartbook.database.LatestPage;
+import smartbook.hutech.edu.smartbook.database.LatestPageDao;
 import smartbook.hutech.edu.smartbook.model.Book;
 import smartbook.hutech.edu.smartbook.model.HighlightConfig;
 import smartbook.hutech.edu.smartbook.model.bookviewer.BookInfoModel;
 import smartbook.hutech.edu.smartbook.model.bookviewer.BookListPageModel;
 import smartbook.hutech.edu.smartbook.model.bookviewer.BookPageModel;
+import smartbook.hutech.edu.smartbook.task.TaskSaveBitmap;
 import smartbook.hutech.edu.smartbook.ui.fragment.PageFragment;
 import smartbook.hutech.edu.smartbook.utils.FileUtils;
+import smartbook.hutech.edu.smartbook.utils.StringUtils;
 import timber.log.Timber;
 
 /**
@@ -62,7 +71,8 @@ import timber.log.Timber;
  */
 
 @RuntimePermissions
-public class BookReaderActivity extends BaseActivity implements ViewPager.OnPageChangeListener, ISwipePage {
+public class BookReaderActivity extends BaseActivity implements ViewPager.OnPageChangeListener,
+        ISwipePage, ISaveHighlight {
 
     public static final int MENU_SHOW_TABLE_OF_CONTENT = 1;
     public static final int MENU_PAGE_INDEX = 2;
@@ -85,7 +95,6 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
 
     private Book mBook;
     private BookInfoModel mBookInfo;
-    private BookListPageModel mBookListPage;
     File mPathBookResource;
 
     private BookReaderPagerAdapter mBookDetailPageAdapter;
@@ -136,7 +145,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     /**
      * Init activity
      */
-    @NeedsPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+    @NeedsPermission(value = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE})
     void init() {
         initBookData();
         initPager();
@@ -176,6 +185,23 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         } else {
             mBtnShowHideAction.setText("{gmi-chevron-down}");
         }
+        checkBookMark();
+    }
+
+    private void checkBookMark() {
+        BookmarkedDao bookmarkedDao = App.getApp().getDaoSession().getBookmarkedDao();
+        String bookId = String.valueOf(mBook.getBookId());
+        int currentPage = mViewPager.getCurrentItem();
+        Bookmarked bookmarked = bookmarkedDao.queryBuilder()
+                .where(BookmarkedDao.Properties.Bid.eq(bookId),
+                        BookmarkedDao.Properties.Page.eq(currentPage))
+                .unique();
+        if (bookmarked != null) {
+            mIsBookmark = true;
+        } else {
+            mIsBookmark = false;
+        }
+        invalidateOptionsMenu();
     }
 
     /**
@@ -187,12 +213,17 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         }
         mBookDetailPageAdapter = new BookReaderPagerAdapter(getSupportFragmentManager());
         for (BookPageModel page : mBook.getPageList()) {
-            mBookDetailPageAdapter.addPage(PageFragment.newInstance(page, mPathBookResource.getAbsolutePath()));
+            mBookDetailPageAdapter.addPage(PageFragment.newInstance(page, mBook.getBookId() + "",
+                    mPathBookResource.getAbsolutePath()));
         }
         mViewPager.setAdapter(mBookDetailPageAdapter);
-
-        setCurrentPageDisplay(1);
-
+        LatestPageDao latestPageDao = App.getApp().getDaoSession().getLatestPageDao();
+        LatestPage latestPage = latestPageDao.queryBuilder()
+                .where(LatestPageDao.Properties.Bid.eq(String.valueOf(mBook.getBookId())))
+                .unique();
+        if (latestPage != null) {
+            mViewPager.setCurrentItem(latestPage.getPage());
+        }
         //Init listener
         mViewPager.addOnPageChangeListener(this);
     }
@@ -212,32 +243,20 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         }
         mBook.setBookId(2);
         String bookId = String.valueOf(mBook.getBookId());
-        File externalFilesDir = FileUtils.getExternalFilesDir(this);
-        mPathBookResource = FileUtils.separatorWith(externalFilesDir, bookId);
-        File pathBookInfo = FileUtils.separatorWith(mPathBookResource, Constant.BOOK_INFO_FILE_NAME);
-        File pathBookItem = FileUtils.separatorWith(mPathBookResource, Constant.BOOK_ITEMS_FILE_NAME);
-        boolean isHasBookDir = FileUtils.isFileExists(mPathBookResource);
-        boolean isHasInfoFile = FileUtils.isFileExists(pathBookInfo);
-        boolean isHasItemFile = FileUtils.isFileExists(pathBookItem);
+        mPathBookResource = Common.getFolderOfBook(bookId);
 
+        BookInfoModel bookInfo = Common.getInfoOfBook(bookId);
+        BookListPageModel listPage = Common.getListPageOfBook(bookId);
+
+        boolean isBookAvailable = bookInfo == null && listPage == null;
         Timber.d("Resource book: " + mPathBookResource);
-        if (!(isHasBookDir && isHasInfoFile && isHasItemFile)) {
+        if (isBookAvailable) {
             Toast.makeText(this, "Không tìm thấy dữ liệu của sách, vui lòng kiểm tra lại, hoặc download mới", Toast.LENGTH_SHORT).show();
             this.finish();
         }
 
-
-        Gson gson = new Gson();
-        try {
-            mBookInfo = gson.fromJson(FileUtils.readFileToString(pathBookInfo, "utf-8"), BookInfoModel.class);
-            mBookListPage = gson.fromJson(FileUtils.readFileToString(pathBookItem, "utf-8"), BookListPageModel.class);
-            if (mBookListPage != null) {
-                for (BookPageModel bookPageModel : mBookListPage) {
-                    mBook.getPageList().add(bookPageModel);
-                }
-            }
-        } catch (JsonParseException e) {
-            Timber.e(e);
+        for (BookPageModel bookPageModel : listPage) {
+            mBook.getPageList().add(bookPageModel);
         }
 
         mIsEmptyPage = (mBook.getPageList().size() == 0);
@@ -259,6 +278,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     @Override
     public void onPageSelected(int position) {
         setCurrentPageDisplay(position);
+        checkBookMark();
     }
 
 
@@ -328,7 +348,8 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                     Toast.makeText(this, R.string.book_reader_empty_page_error, Toast.LENGTH_SHORT).show();
                     return false;
                 }
-                TableOfContentActivity.start(this, REQ_SELECT_PAGE_CODE);
+                String bookId = String.valueOf(mBook.getBookId());
+                TableOfContentActivity.start(this, bookId, mBook.getPageList(), REQ_SELECT_PAGE_CODE);
                 break;
             case MENU_PAGE_INDEX:
                 if (mIsEmptyPage) {
@@ -350,7 +371,22 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                         .show();
                 break;
             case MENU_PAGE_BOOKMARK:
-                mIsBookmark = !mIsBookmark;
+                BookmarkedDao bookmarkedDao = App.getApp().getDaoSession().getBookmarkedDao();
+                bookId = String.valueOf(mBook.getBookId());
+                int currentPage = mViewPager.getCurrentItem();
+
+                Bookmarked bookmarked = bookmarkedDao.queryBuilder()
+                        .where(BookmarkedDao.Properties.Bid.eq(bookId),
+                                BookmarkedDao.Properties.Page.eq(currentPage))
+                        .unique();
+                if (bookmarked != null) {
+                    bookmarkedDao.delete(bookmarked);
+                    mIsBookmark = false;
+                } else {
+                    bookmarked = new Bookmarked(null, bookId, currentPage);
+                    bookmarkedDao.insert(bookmarked);
+                    mIsBookmark = true;
+                }
                 invalidateOptionsMenu();
                 break;
         }
@@ -366,7 +402,6 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         switch (requestCode) {
             case REQ_SELECT_PAGE_CODE:
                 int pageNum = data.getIntExtra(TableOfContentActivity.EXTRA_PAGE_SELECTED, 0);
-                Toast.makeText(this, "Select page number: " + pageNum, Toast.LENGTH_SHORT).show();
                 mViewPager.setCurrentItem(pageNum, true);
                 break;
         }
@@ -439,22 +474,16 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
 
                 //Disable Earse mode if it available
                 mBtnActionEarse.setTextColor(Color.WHITE);
-
                 //Enable or disable highlight mode
-                if (!bookImageView.isHighlightMode()) {
-                    bookImageView.setBrushType(BookImageView.BrushType.HIGHLIGHT);
-                } else {
+                if (bookImageView.isHighlightMode()) {
+                    mBtnActionHighlight.setTextColor(ContextCompat.getColor(this, R.color.material_color_white));
                     bookImageView.setBrushType(BookImageView.BrushType.NONE);
+                } else {
+                    bookImageView.setBrushType(BookImageView.BrushType.HIGHLIGHT);
+                    mBtnActionHighlight.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
                 }
                 //Disable swipe in viewpager when highlight mode enable
                 mViewPager.setTouchesAllowed(!bookImageView.isHighlightMode());
-
-                //Update UI
-                if (bookImageView.isHighlightMode()) {
-                    mBtnActionHighlight.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
-                } else {
-                    mBtnActionHighlight.setTextColor(ContextCompat.getColor(this, R.color.material_color_white));
-                }
             }
         }
     }
@@ -498,20 +527,17 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                 mBtnActionHighlight.setTextColor(Color.WHITE);
 
                 //Enable or disable earse mode
-                if (!bookImageView.isEarseMode()) {
-                    bookImageView.setBrushType(BookImageView.BrushType.EARSE);
-                } else {
+                if (bookImageView.isEarseMode()) {
                     bookImageView.setBrushType(BookImageView.BrushType.NONE);
+                    mBtnActionEarse.setTextColor(ContextCompat.getColor(this, R.color.material_color_white));
+                } else {
+                    bookImageView.setBrushType(BookImageView.BrushType.EARSE);
+                    mBtnActionEarse.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
+
                 }
+
                 //Disable swipe in viewpager when highlight mode enable
                 mViewPager.setTouchesAllowed(!bookImageView.isEarseMode());
-
-                //Update UI
-                if (bookImageView.isEarseMode()) {
-                    mBtnActionEarse.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
-                } else {
-                    mBtnActionEarse.setTextColor(ContextCompat.getColor(this, R.color.material_color_white));
-                }
             }
         }
 
@@ -563,6 +589,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         PageFragment focusPageFragment = getFocusPageFragment();
         if (focusPageFragment != null) {
             if (focusPageFragment.getBookImageView() != null) {
@@ -570,7 +597,13 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                 Toast.makeText(this, "empty highlight: " + isEmpty, Toast.LENGTH_SHORT).show();
             }
         }
-        super.onDestroy();
+        //Save last page
+        String bookId = String.valueOf(mBook.getBookId());
+        int currentPage = mViewPager.getCurrentItem();
+        LatestPageDao latestPageDao = App.getApp().getDaoSession().getLatestPageDao();
+        LatestPage latestPage = new LatestPage(null, bookId, currentPage);
+        long data = latestPageDao.insertOrReplace(latestPage);
+        Timber.d(data + "");
     }
 
     @Override
@@ -579,7 +612,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         BookReaderActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
     }
 
-    @OnPermissionDenied(Manifest.permission.READ_EXTERNAL_STORAGE)
+    @OnPermissionDenied(value = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE})
     void onExtenalDenny() {
         mIsEmptyPage = true;
         mTvEmptyPage.setVisibility(View.VISIBLE);
@@ -597,4 +630,17 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
             mViewPager.setCurrentItem(position, true);
         }
     }
+
+    @Override
+    public void saveCurrentHighlight(int pageIndex, Bitmap bitmap) {
+        String fileName = StringUtils.leftPad(String.valueOf(pageIndex), 3, '0');
+        fileName += ".png";
+        File highlightFile = FileUtils.separatorWith(mPathBookResource, Constant.HIGHLIGHT_FOLDER_NAME);
+        if (FileUtils.isFileExists(highlightFile)) {
+            Timber.d(FileUtils.separatorWith(highlightFile, fileName).getAbsolutePath());
+            TaskSaveBitmap taskSaveBitmap = new TaskSaveBitmap(FileUtils.separatorWith(highlightFile, fileName));
+            taskSaveBitmap.execute(bitmap);
+        }
+    }
+
 }
