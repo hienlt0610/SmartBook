@@ -105,11 +105,6 @@ public abstract class BaseFragment extends Fragment implements ApiResponseListen
                         dismissLoading();
                     }
                 });
-            } else {
-                if (!isNetwork){
-                    Timber.e(getActivity().getString(R.string.error_network));
-                    SystemUtils.showAlert(getActivity(), getActivity().getString(R.string.error_network),
-                            getActivity().getString(R.string.error_no_internet), null);}
             }
         }
     };

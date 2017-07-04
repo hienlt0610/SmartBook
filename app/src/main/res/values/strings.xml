@@ -15,4 +15,5 @@
     <string name="book_reader_empty_page_error">Quyển sách này không có trang nào, vui lòng thử lại</string>
     <string name="dialog_highlight_config_title">Chọn màu</string>
     <string name="book_clear_highlight">Bạn có muốn xóa sạch toàn bộ highlight ở trang này chứ?</string>
+    <string name="data_offline">Đang ở chế độ offline, không lấy được data</string>
 </resources>
