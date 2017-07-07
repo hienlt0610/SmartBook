@@ -17,14 +17,18 @@ public class BitmapUtils {
             return false;
         }
         bitmap = scale(bitmap, 100, 100);
+        int count = 0;
         for (int x = 0; x < bitmap.getWidth(); x++) {
             for (int y = 0; y < bitmap.getHeight(); y++) {
                 if (bitmap.getPixel(x, y) != Color.TRANSPARENT) {
-                    return false;
+                    count++;
                 }
             }
         }
-        return true;
+        if (count < 5) {
+            return true;
+        }
+        return false;
     }
 
     public static Bitmap scale(Bitmap image, int maxWidth, int maxHeight) {
@@ -65,6 +69,7 @@ public class BitmapUtils {
             } finally {
                 try {
                     if (outputStream != null) {
+                        outputStream.flush();
                         outputStream.close();
                     }
                 } catch (IOException e) {

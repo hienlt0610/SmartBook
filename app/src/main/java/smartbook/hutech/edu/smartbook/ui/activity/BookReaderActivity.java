@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,12 +21,15 @@ import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.BounceInterpolator;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 import com.google.gson.Gson;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.iconics.view.IconicsButton;
@@ -33,6 +38,7 @@ import com.mikepenz.material_design_iconic_typeface_library.MaterialDesignIconic
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.File;
+import java.io.IOException;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -46,6 +52,7 @@ import smartbook.hutech.edu.smartbook.common.App;
 import smartbook.hutech.edu.smartbook.common.BaseActivity;
 import smartbook.hutech.edu.smartbook.common.Common;
 import smartbook.hutech.edu.smartbook.common.Constant;
+import smartbook.hutech.edu.smartbook.common.interfaces.IAudioAction;
 import smartbook.hutech.edu.smartbook.common.interfaces.ISaveHighlight;
 import smartbook.hutech.edu.smartbook.common.interfaces.ISwipePage;
 import smartbook.hutech.edu.smartbook.common.view.ExtendedViewPager;
@@ -72,7 +79,7 @@ import timber.log.Timber;
 
 @RuntimePermissions
 public class BookReaderActivity extends BaseActivity implements ViewPager.OnPageChangeListener,
-        ISwipePage, ISaveHighlight {
+        ISwipePage, ISaveHighlight, IAudioAction {
 
     public static final int MENU_SHOW_TABLE_OF_CONTENT = 1;
     public static final int MENU_PAGE_INDEX = 2;
@@ -91,9 +98,15 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     Button mBtnActionHighlight;
     @BindView(R.id.activityBookViewer_btn_acion_clear)
     Button mBtnActionEarse;
-
+    @BindView(R.id.activityBookViewer_btn_audio_menu)
+    FloatingActionMenu mFamAudio;
+    @BindView(R.id.activityBookViewer_btn_play_pause_audio)
+    FloatingActionButton mFabPlayPause;
+    @BindView(R.id.img_test)
+    ImageView mImageView;
 
     private Book mBook;
+
     private BookInfoModel mBookInfo;
     File mPathBookResource;
 
@@ -101,6 +114,9 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     private boolean mIsBookmark;
     private boolean mIsToolBarShow = false;
     private boolean mIsEmptyPage = true;
+    private MediaPlayer mPlayer;
+    private int[] mPagePlaying;
+    private boolean mIsPause;
 
     /**
      * Start activity With parameter
@@ -125,6 +141,17 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         super.onCreate(savedInstanceState);
         BookReaderActivityPermissionsDispatcher.initWithCheck(this);
         initActionBar();
+        initMediaPlayer();
+        mPlayer.reset();
+        mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mFamAudio.getMenuIconView().setImageResource(R.drawable.ic_volume);
+        mFamAudio.hideMenu(false);
+    }
+
+    private void initMediaPlayer() {
+        mPagePlaying = new int[2];
+        mPlayer = new MediaPlayer();
+        initPlayerListener();
     }
 
     @Override
@@ -149,7 +176,9 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     void init() {
         initBookData();
         initPager();
+        checkBookMark();
     }
+
 
     private void initActionBar() {
         //Hide action bar when empty page
@@ -185,7 +214,6 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         } else {
             mBtnShowHideAction.setText("{gmi-chevron-down}");
         }
-        checkBookMark();
     }
 
     private void checkBookMark() {
@@ -196,11 +224,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                 .where(BookmarkedDao.Properties.Bid.eq(bookId),
                         BookmarkedDao.Properties.Page.eq(currentPage))
                 .unique();
-        if (bookmarked != null) {
-            mIsBookmark = true;
-        } else {
-            mIsBookmark = false;
-        }
+        mIsBookmark = bookmarked != null;
         invalidateOptionsMenu();
     }
 
@@ -248,9 +272,9 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         BookInfoModel bookInfo = Common.getInfoOfBook(bookId);
         BookListPageModel listPage = Common.getListPageOfBook(bookId);
 
-        boolean isBookAvailable = bookInfo == null && listPage == null;
+        boolean isBookAvailable = bookInfo != null && listPage != null;
         Timber.d("Resource book: " + mPathBookResource);
-        if (isBookAvailable) {
+        if (!isBookAvailable) {
             Toast.makeText(this, "Không tìm thấy dữ liệu của sách, vui lòng kiểm tra lại, hoặc download mới", Toast.LENGTH_SHORT).show();
             this.finish();
         }
@@ -279,6 +303,12 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     public void onPageSelected(int position) {
         setCurrentPageDisplay(position);
         checkBookMark();
+        resetAudioIcon();
+        if (mPagePlaying[0] == mViewPager.getCurrentItem()) {
+            setPlaying(mPagePlaying[1]);
+        } else {
+            setPlaying(-1);
+        }
     }
 
 
@@ -410,7 +440,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     /**
      * Set view display current page
      *
-     * @param position
+     * @param position  Current position of ViewPager
      */
     private void setCurrentPageDisplay(int position) {
         invalidateOptionsMenu();
@@ -438,7 +468,6 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                     .start();
             //Change icon
             mBtnShowHideAction.setText("{gmi-chevron-up}");
-            PageFragment focusPageFragment = getFocusPageFragment();
         } else {
             //Show action bar
             getToolbar().animate().setDuration(100).translationY(0).setInterpolator(new AccelerateInterpolator()).start();
@@ -587,9 +616,19 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         return null;
     }
 
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        //Release MediaPlayer
+        if (mPlayer != null) {
+            if (mPlayer.isPlaying()) {
+                mPlayer.stop();
+            }
+            mPlayer.release();
+            mPlayer = null;
+        }
+
         PageFragment focusPageFragment = getFocusPageFragment();
         if (focusPageFragment != null) {
             if (focusPageFragment.getBookImageView() != null) {
@@ -632,15 +671,171 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     }
 
     @Override
-    public void saveCurrentHighlight(int pageIndex, Bitmap bitmap) {
+    public void saveCurrentHighlight(Bitmap bitmap) {
+        int pageIndex = mViewPager.getCurrentItem();
         String fileName = StringUtils.leftPad(String.valueOf(pageIndex), 3, '0');
         fileName += ".png";
         File highlightFile = FileUtils.separatorWith(mPathBookResource, Constant.HIGHLIGHT_FOLDER_NAME);
         if (FileUtils.isFileExists(highlightFile)) {
             Timber.d(FileUtils.separatorWith(highlightFile, fileName).getAbsolutePath());
-            TaskSaveBitmap taskSaveBitmap = new TaskSaveBitmap(FileUtils.separatorWith(highlightFile, fileName));
+            File fileDraw = FileUtils.separatorWith(highlightFile, fileName);
+            TaskSaveBitmap taskSaveBitmap = new TaskSaveBitmap(fileDraw);
             taskSaveBitmap.execute(bitmap);
         }
     }
 
+    @Override
+    public void onPlayAudio(String audioPath, int itemPos) {
+        if (mPlayer == null) return;
+        //Start audio
+        if (!mPlayer.isPlaying() && !mIsPause) {
+            //Play new audio
+            playAudio(audioPath, itemPos);
+            mFabPlayPause.setImageResource(R.drawable.ic_action_play);
+            mFabPlayPause.setLabelText(getString(R.string.book_reader_pause_audio));
+        } else {
+            //Stop audio
+            if (mPagePlaying[0] == mViewPager.getCurrentItem() && mPagePlaying[1] == itemPos) {
+                stopAudio();
+                resetAudioIcon();
+                mPagePlaying[0] = -1;
+                mPagePlaying[1] = -1;
+                mFabPlayPause.setImageResource(R.drawable.ic_action_pause);
+                mFabPlayPause.setLabelText(getString(R.string.book_reader_resume_audio));
+            } else {
+                //Play new audio
+                playAudio(audioPath, itemPos);
+                mFabPlayPause.setImageResource(R.drawable.ic_action_play);
+                mFabPlayPause.setLabelText(getString(R.string.book_reader_pause_audio));
+            }
+        }
+    }
+
+    private void initPlayerListener() {
+        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                stopAudio();
+                resetAudioIcon();
+            }
+        });
+
+        mPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                //Invoked when there has been an error during an asynchronous operation
+                switch (what) {
+                    case MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:
+                        Timber.d("MediaPlayer Error", "MEDIA ERROR NOT VALID FOR PROGRESSIVE PLAYBACK " + extra);
+                        break;
+                    case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
+                        Timber.d("MediaPlayer Error", "MEDIA ERROR SERVER DIED " + extra);
+                        break;
+                    case MediaPlayer.MEDIA_ERROR_UNKNOWN:
+                        Timber.d("MediaPlayer Error", "MEDIA ERROR UNKNOWN " + extra);
+                        break;
+                }
+                return false;
+            }
+        });
+
+        mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                playAudio();
+                mFamAudio.showMenu(true);
+            }
+        });
+    }
+
+    private void playAudio() {
+        if (mPlayer != null && !mPlayer.isPlaying()) {
+            mPlayer.start();
+        }
+    }
+
+    private void stopAudio() {
+        mPagePlaying[0] = -1;
+        mPagePlaying[1] = -1;
+        if (mPlayer != null && mPlayer.isPlaying()) {
+            mPlayer.stop();
+        }
+        mFamAudio.hideMenu(true);
+    }
+
+    private void pauseAudio() {
+        if (mPlayer != null && mPlayer.isPlaying()) {
+            mPlayer.pause();
+        }
+    }
+
+    private void resetAudio() {
+        if (mPlayer != null) {
+            stopAudio();
+            mPlayer.reset();
+        }
+    }
+
+    private void resetAudioIcon() {
+        for (int i = 0; i < mBookDetailPageAdapter.getCount(); i++) {
+            PageFragment pageFragment = (PageFragment) mBookDetailPageAdapter.getItem(i);
+            if (pageFragment != null) {
+                pageFragment.setPlaying(-1);
+            }
+        }
+    }
+
+    private void setPlaying(int position) {
+        PageFragment pageFragment = getFocusPageFragment();
+        if (pageFragment != null) {
+            pageFragment.setPlaying(position);
+        }
+    }
+
+    private void playAudio(String path, int pos) {
+        resetAudio();
+        File fileAudio = FileUtils.separatorWith(mPathBookResource, path);
+        if (FileUtils.isFileExists(fileAudio)) {
+            try {
+                mPlayer.setDataSource(fileAudio.getAbsolutePath());
+                resetAudioIcon();
+                PageFragment pageFragment = getFocusPageFragment();
+                if (pageFragment != null) {
+                    pageFragment.setPlaying(pos);
+                }
+                mPagePlaying[0] = mViewPager.getCurrentItem();
+                mPagePlaying[1] = pos;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mPlayer.prepareAsync();
+        }
+    }
+
+    @OnClick(R.id.activityBookViewer_btn_stop_audio)
+    void onActionStopAudioClick() {
+        stopAudio();
+        resetAudioIcon();
+    }
+
+    @OnClick(R.id.activityBookViewer_btn_play_pause_audio)
+    void onActionPlayPauseAudioClick() {
+        if (mPlayer.isPlaying()) {
+            pauseAudio();
+            mFabPlayPause.setImageResource(R.drawable.ic_action_pause);
+            mFabPlayPause.setLabelText(getString(R.string.book_reader_resume_audio));
+            mIsPause = true;
+        } else {
+            playAudio();
+            mFabPlayPause.setImageResource(R.drawable.ic_action_play);
+            mFabPlayPause.setLabelText(getString(R.string.book_reader_pause_audio));
+            mIsPause = false;
+        }
+    }
+
+    @OnClick(R.id.activityBookViewer_btn_back_playing_page)
+    void onActionBackPlayingPage() {
+        mViewPager.setCurrentItem(mPagePlaying[0]);
+        mFamAudio.close(true);
+    }
 }
