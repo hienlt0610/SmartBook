@@ -86,6 +86,7 @@ import smartbook.hutech.edu.smartbook.task.TaskSaveBitmap;
 import smartbook.hutech.edu.smartbook.ui.fragment.PageFragment;
 import smartbook.hutech.edu.smartbook.utils.FileUtils;
 import smartbook.hutech.edu.smartbook.utils.StringUtils;
+import smartbook.hutech.edu.smartbook.utils.SystemUtils;
 import timber.log.Timber;
 
 /**
@@ -865,6 +866,9 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
 
     @OnClick(R.id.activityBookViewer_btn_action_translate)
     void onActionTranslateClick(View view) {
+        if (!SystemUtils.isNetworkAvailable(this)) {
+            Toast.makeText(this, R.string.book_reader_translate_network_require, Toast.LENGTH_SHORT).show();
+        }
         if (!mTextRecognizer.isOperational()) {
             // Note: The first time that an app using a Vision API is installed on a
             // device, GMS will download a native libraries to the device in order to do detection.
@@ -882,7 +886,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
             boolean hasLowStorage = registerReceiver(null, lowstorageFilter) != null;
 
             if (hasLowStorage) {
-                Toast.makeText(this, "Low Storage", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.low_storage_error, Toast.LENGTH_LONG).show();
                 Timber.w("Low Storage");
             }
         }
@@ -948,8 +952,8 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     @Override
     public void onTextSelected(final String text) {
         mMaterialDialog = new MaterialDialog.Builder(this)
-                .title("Xử lý nội dung")
-                .content("Đang xử lý, vui lòng chờ")
+                .title(R.string.book_reader_translate_progress_title)
+                .content(R.string.book_reader_translate_loading)
                 .progress(true, 0)
                 .show();
         TranslateApi translateApi = ApiGenerator.getInstance().createTranslateRetrofit().create(TranslateApi.class);
@@ -961,7 +965,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                         if (response.isSuccessful()) {
                             String content = StringUtils.join(response.body().getText(), "\n");
                             mMaterialDialog = new MaterialDialog.Builder(BookReaderActivity.this)
-                                    .title("Kết quả")
+                                    .title(R.string.book_reader_translate_result)
                                     .content(content)
                                     .show();
                         }

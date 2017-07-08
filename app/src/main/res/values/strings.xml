@@ -18,4 +18,9 @@
     <string name="data_offline">Đang ở chế độ offline, không lấy được data</string>
     <string name="book_reader_pause_audio">Tạm dừng</string>
     <string name="book_reader_resume_audio">Phát tiếp</string>
+    <string name="book_reader_translate_network_require">Muốn sử dụng tính năng dịch, vui lòng kết nối mạng</string>
+    <string name="low_storage_error">Low Storage</string>
+    <string name="book_reader_translate_result">Kết quả</string>
+    <string name="book_reader_translate_loading">Đang xử lý, vui lòng chờ</string>
+    <string name="book_reader_translate_progress_title">Xử lý nội dung</string>
 </resources>
