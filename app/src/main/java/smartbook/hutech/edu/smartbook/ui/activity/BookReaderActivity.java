@@ -696,8 +696,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     }
 
     @Override
-    public void saveCurrentHighlight(Bitmap bitmap) {
-        int pageIndex = mViewPager.getCurrentItem();
+    public void saveCurrentHighlight(Bitmap bitmap, int pageIndex) {
         String fileName = StringUtils.leftPad(String.valueOf(pageIndex), 3, '0');
         fileName += ".png";
         File highlightFile = FileUtils.separatorWith(mPathBookResource, Constant.HIGHLIGHT_FOLDER_NAME);

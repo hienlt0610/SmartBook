@@ -7,11 +7,9 @@ import android.support.annotation.Nullable;
 import android.text.InputType;
 import android.util.SparseArray;
 import android.view.View;
-import android.widget.ImageView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.signature.StringSignature;
@@ -132,7 +130,6 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
         if (FileUtils.isFileExists(mHightlightImageFile)) {
             Glide.with(this).load(mHightlightImageFile)
                     .asBitmap()
-                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                     .signature(new StringSignature(String.valueOf(mHightlightImageFile.lastModified())))
                     .into(new SimpleTarget<Bitmap>() {
                         @Override
@@ -144,7 +141,6 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
 
         Glide.with(this).load(imageFile)
                 .asBitmap()
-                .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                 .into(new SimpleTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
@@ -251,14 +247,11 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
         if (mBookImageView.isEmptyHighlight() && FileUtils.isFileExists(mHightlightImageFile)) {
             Timber.d("Delete highlight image file when it empty");
             FileUtils.deleteFile(mHightlightImageFile);
-
         } else {
             Bitmap bitmap = mBookImageView.getHighlightBitmap();
             if (getActivity() instanceof ISaveHighlight) {
-                ((ISaveHighlight) getActivity()).saveCurrentHighlight(bitmap);
+                ((ISaveHighlight) getActivity()).saveCurrentHighlight(bitmap, mPage.getPageIndex());
             }
-            ImageView imageView = new ImageView(getActivity());
-            imageView.setImageBitmap(bitmap);
         }
     }
 
