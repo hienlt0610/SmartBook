@@ -12,8 +12,6 @@ import java.util.List;
 public class BookItemModel {
     @SerializedName("itemType")
     private String itemType;
-    @SerializedName("resource")
-    private String resource;
     @SerializedName("data")
     private List<Object> data = null;
     @SerializedName("correct")
@@ -27,14 +25,6 @@ public class BookItemModel {
 
     public void setItemType(String itemType) {
         this.itemType = itemType;
-    }
-
-    public String getResource() {
-        return resource;
-    }
-
-    public void setResource(String resource) {
-        this.resource = resource;
     }
 
     public List<Object> getData() {

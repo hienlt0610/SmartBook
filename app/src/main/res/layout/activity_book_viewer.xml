@@ -13,9 +13,7 @@
         android:layout_height="match_parent"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true">
-
-    </smartbook.hutech.edu.smartbook.common.view.ExtendedViewPager>
+        android:layout_alignParentTop="true"/>
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
@@ -24,6 +22,66 @@
         android:background="#CC000000"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+
+    <com.github.clans.fab.FloatingActionMenu
+        android:id="@+id/activityBookViewer_btn_audio_menu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="50dp"
+        app:menu_animationDelayPerItem="55"
+        app:menu_backgroundColor="@android:color/transparent"
+        app:menu_buttonSpacing="0dp"
+        app:menu_colorNormal="@color/material_color_orange_500"
+        app:menu_colorPressed="@color/material_color_orange_400"
+        app:menu_colorRipple="@color/material_color_orange_100"
+        app:menu_fab_size="normal"
+        app:menu_icon="@drawable/fab_add"
+        app:menu_labels_colorNormal="#333"
+        app:menu_labels_colorPressed="#444"
+        app:menu_labels_colorRipple="#66efecec"
+        app:menu_labels_cornerRadius="3dp"
+        app:menu_labels_ellipsize="none"
+        app:menu_labels_hideAnimation="@anim/fab_slide_out_to_right"
+        app:menu_labels_margin="0dp"
+        app:menu_labels_maxLines="-1"
+        app:menu_labels_padding="8dp"
+        app:menu_labels_position="left"
+        app:menu_labels_showAnimation="@anim/fab_slide_in_from_right"
+        app:menu_labels_showShadow="true"
+        app:menu_labels_singleLine="false"
+        app:menu_labels_textColor="#f2f1f1"
+        app:menu_labels_textSize="15sp"
+        app:menu_openDirection="up">
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/activityBookViewer_btn_stop_audio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_stop"
+            app:fab_colorNormal="@color/material_color_orange_600"
+            app:fab_label="Tắt"
+            app:fab_size="mini"/>
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/activityBookViewer_btn_play_pause_audio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_action_play"
+            app:fab_colorNormal="@color/material_color_orange_600"
+            app:fab_label="Tạm dừng"
+            app:fab_size="mini"/>
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/activityBookViewer_btn_back_playing_page"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_action_back"
+            app:fab_colorNormal="@color/material_color_orange_600"
+            app:fab_label="Về trang đang phát"
+            app:fab_size="mini"/>
+    </com.github.clans.fab.FloatingActionMenu>
 
     <LinearLayout
         android:id="@+id/activityBookViewer_ll_bottom_action"
@@ -110,4 +168,10 @@
         android:text="@string/book_reader_empty_page_error"
         android:textSize="@dimen/text_normal"
         android:visibility="gone"/>
+
+    <ImageView
+        android:id="@+id/img_test"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:layout_below="@id/toolbar"/>
 </RelativeLayout>

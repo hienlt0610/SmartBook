@@ -5,25 +5,27 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.InputType;
+import android.util.SparseArray;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.ImageView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.signature.StringSignature;
 import com.google.gson.Gson;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import butterknife.BindView;
 import smartbook.hutech.edu.smartbook.R;
 import smartbook.hutech.edu.smartbook.common.App;
 import smartbook.hutech.edu.smartbook.common.BaseFragment;
 import smartbook.hutech.edu.smartbook.common.Constant;
+import smartbook.hutech.edu.smartbook.common.interfaces.IAudioAction;
 import smartbook.hutech.edu.smartbook.common.interfaces.IBookViewAction;
 import smartbook.hutech.edu.smartbook.common.interfaces.ISaveHighlight;
 import smartbook.hutech.edu.smartbook.common.interfaces.ISwipePage;
@@ -34,6 +36,7 @@ import smartbook.hutech.edu.smartbook.model.bookviewer.BookItemModel;
 import smartbook.hutech.edu.smartbook.model.bookviewer.BookPageModel;
 import smartbook.hutech.edu.smartbook.utils.FileUtils;
 import smartbook.hutech.edu.smartbook.utils.StringUtils;
+import timber.log.Timber;
 
 /**
  * Created by hienl on 6/24/2017.
@@ -48,6 +51,7 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
     private String mBookFolder;
     private String mBookId;
     private AnsweredDao mAnsweredDao;
+    private File mHightlightImageFile;
 
     public static PageFragment newInstance(BookPageModel page, String bookId, String bookFolder) {
         Bundle args = new Bundle();
@@ -83,7 +87,6 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
 
         boolean hasBookInfo = bundle != null && bundle.containsKey(EXTRA_BOOK_ID);
         if (hasBookInfo) {
-            String string = bundle.getString(EXTRA_PAGE);
             mBookId = bundle.getString(EXTRA_BOOK_ID);
         }
 
@@ -107,7 +110,7 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
             String bookId = String.valueOf(mBookId);
             List<Answered> listAnswer = mAnsweredDao.queryBuilder().where(AnsweredDao.Properties.Bid.eq(bookId),
                     AnsweredDao.Properties.Page.eq(mPage.getPageIndex())).list();
-            Map<Integer, String> mapAnswer = new HashMap<>();
+            SparseArray<String> mapAnswer = new SparseArray<>();
             for (Answered answered : listAnswer) {
                 mapAnswer.put(answered.getQuizIndex(), answered.getQuizAnswer());
             }
@@ -125,35 +128,38 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
 
         String fileName = StringUtils.leftPad(String.valueOf(mPage.getPageIndex()), 3, '0') + ".png";
         File highlightFolder = FileUtils.separatorWith(bookFile, Constant.HIGHLIGHT_FOLDER_NAME);
-        File hightlightImageFile = FileUtils.separatorWith(highlightFolder, fileName);
-        if (FileUtils.isFileExists(hightlightImageFile)) {
-            Glide.with(this).load(hightlightImageFile).asBitmap().into(new SimpleTarget<Bitmap>() {
-                @Override
-                public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                    mBookImageView.setBitmapHighlight(resource);
-                }
-            });
+        mHightlightImageFile = FileUtils.separatorWith(highlightFolder, fileName);
+        if (FileUtils.isFileExists(mHightlightImageFile)) {
+            Glide.with(this).load(mHightlightImageFile)
+                    .asBitmap()
+                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                    .signature(new StringSignature(String.valueOf(mHightlightImageFile.lastModified())))
+                    .into(new SimpleTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                            mBookImageView.setBitmapHighlight(resource);
+                        }
+                    });
         }
 
         Glide.with(this).load(imageFile)
-                .asBitmap().into(new SimpleTarget<Bitmap>() {
-            @Override
-            public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
-                mBookImageView.setImageBitmap(resource);
-            }
-        });
+                .asBitmap()
+                .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                .into(new SimpleTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                        mBookImageView.setImageBitmap(resource);
+                    }
+                });
     }
 
     /**
      * Check if Image is Zooming
      *
-     * @return
+     * @return true if page is zommed
      */
     public boolean isZoomed() {
-        if (mBookImageView != null) {
-            return mBookImageView.isZoomed();
-        }
-        return false;
+        return mBookImageView != null && mBookImageView.isZoomed();
     }
 
     /**
@@ -166,10 +172,7 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
     }
 
     public boolean isHighlight() {
-        if (mBookImageView != null) {
-            return mBookImageView.isHighlightMode();
-        }
-        return false;
+        return mBookImageView != null && mBookImageView.isHighlightMode();
     }
 
     public BookImageView getBookImageView() {
@@ -178,7 +181,6 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
 
     @Override
     public void onInputClick(final int position) {
-        BookItemModel item = mPage.getItems().get(position);
         String answer = mBookImageView.getItemResult(position);
         new MaterialDialog.Builder(getActivity())
                 .title("Nhập câu trả lời")
@@ -188,7 +190,6 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
                     public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
                         mBookImageView.setItemResult(input.toString(), position);
                         if (mBookId != null) {
-                            String bookId = String.valueOf(mBookId);
                             Answered answered = new Answered(null, mBookId, mPage.getPageIndex(), position, input.toString());
                             mAnsweredDao.insertOrReplace(answered);
                         }
@@ -199,7 +200,15 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
     @Override
     public void onAudioClick(int position) {
         BookItemModel item = mPage.getItems().get(position);
-        Toast.makeText(getContext(), "Play audio: " + item.getData().get(0), Toast.LENGTH_SHORT).show();
+        if (item.getData() == null || item.getData().size() == 0) {
+            Timber.w("Audio data is empty, cannot load!!!");
+            return;
+        }
+        if (getActivity() instanceof IAudioAction) {
+            String fileName = (String) item.getData().get(0);
+            String audioPath = mPage.getTrackResourcePath() + File.separator + fileName;
+            ((IAudioAction) getActivity()).onPlayAudio(audioPath, position);
+        }
     }
 
     @Override
@@ -233,24 +242,29 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
             }
         }
     }
-//
-//    @Override
-//    public void onHighlightDrawed() {
-//        if (getActivity() instanceof ISaveHighlight) {
-//            Bitmap bitmap = mBookImageView.getHighlightBitmap();
-//            ((ISaveHighlight) getActivity()).saveCurrentHighlight(bitmap);
-//        }
-//    }
-
 
     @Override
     public void onStop() {
         super.onStop();
-        if (mBookImageView.isHighlightSaveAble()) {
+        if (!mBookImageView.isHighlightSaveAble())
+            return;
+        if (mBookImageView.isEmptyHighlight() && FileUtils.isFileExists(mHightlightImageFile)) {
+            Timber.d("Delete highlight image file when it empty");
+            FileUtils.deleteFile(mHightlightImageFile);
+
+        } else {
+            Bitmap bitmap = mBookImageView.getHighlightBitmap();
             if (getActivity() instanceof ISaveHighlight) {
-                Bitmap bitmap = mBookImageView.getHighlightBitmap();
-                ((ISaveHighlight) getActivity()).saveCurrentHighlight(mPage.getPageIndex(), bitmap);
+                ((ISaveHighlight) getActivity()).saveCurrentHighlight(bitmap);
             }
+            ImageView imageView = new ImageView(getActivity());
+            imageView.setImageBitmap(bitmap);
+        }
+    }
+
+    public void setPlaying(int position) {
+        if (mBookImageView != null) {
+            mBookImageView.setPlayingPos(position);
         }
     }
 }

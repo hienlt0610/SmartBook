@@ -17,12 +17,11 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
+import android.util.SparseArray;
 import android.view.MotionEvent;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import smartbook.hutech.edu.smartbook.R;
 import smartbook.hutech.edu.smartbook.common.Constant;
@@ -31,7 +30,6 @@ import smartbook.hutech.edu.smartbook.model.HighlightConfig;
 import smartbook.hutech.edu.smartbook.model.bookviewer.BookItemModel;
 import smartbook.hutech.edu.smartbook.model.bookviewer.CoordinateModel;
 import smartbook.hutech.edu.smartbook.utils.BitmapUtils;
-import smartbook.hutech.edu.smartbook.utils.ScreenUtils;
 import smartbook.hutech.edu.smartbook.utils.StringUtils;
 
 /**
@@ -41,15 +39,12 @@ import smartbook.hutech.edu.smartbook.utils.StringUtils;
 public class BookImageView extends TouchImageView implements IBookViewAction {
     float[] values = new float[9];
     private List<Rect> mRectList;
-    private List<String> mMessage;
-    private int selected = -1;
     private PointF last = new PointF();
     private BrushType mBrushType = BrushType.NONE;
     private Paint mLinePaint;
     private Paint mBitmapPaint;
     private Paint mEarsePaint;
     private HighlightConfig mHighlightConfig;
-    private float mDensityScreen;
     private Canvas mCanvasHighlight;
     private Bitmap mBitmapHighlight;
     private Path mPathTemp;
@@ -57,7 +52,7 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
     private boolean mIsCleared;
     private List<BookItemModel> mListBookItem;
     private Bitmap mBmpAudio;
-    private Matrix mMatrixAudio;
+    private Bitmap mBmpPlaying;
     private IBookViewAction mIBookViewAction;
     private Paint mCornerPaint;
     private Paint mFieldBgPaint;
@@ -67,10 +62,11 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
     private int mCornerRound = 10;
     private int mTextSize = 55;
     private float mScale;
-    private Map<Integer, String> mAnswers;
+    private SparseArray<String> mAnswers;
     private Rect mBound;
     private int mItemFocus;
     private boolean mIsHighlightSaveAble;
+    private int mPlayingPos = -1;
 
     public BookImageView(Context context) {
         super(context);
@@ -83,10 +79,8 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
     }
 
     private void init() {
-        mDensityScreen = getContext().getResources().getDisplayMetrics().density;
         mRectList = new ArrayList<>();
-        mDensityScreen = ScreenUtils.getDensityScreen(getContext());
-        mAnswers = new HashMap<>();
+        mAnswers = new SparseArray<>();
         mBound = new Rect();
         initResourceDraw();
     }
@@ -132,14 +126,13 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
         opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
         opts.inScaled = false; /* Flag for no scalling */
         mBmpAudio = BitmapFactory.decodeResource(getResources(), R.drawable.ic_audio, opts);
-        mMatrixAudio = new Matrix();
+        mBmpPlaying = BitmapFactory.decodeResource(getResources(), R.drawable.ic_playing, opts);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         PointF curr = new PointF(event.getX(), event.getY());
         PointF imgPoint = transformCoordTouchToBitmap(event.getX(), event.getY(), false);
-        float scale = getScale();
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 last.set(curr);
@@ -193,14 +186,19 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
                     for (int i = 0; i < mRectList.size(); i++) {
                         if (mRectList.get(i).contains((int) imgPoint.x, (int) imgPoint.y)) {
                             BookItemModel item = mListBookItem.get(i);
-                            if (item.getItemType().equals(Constant.INPUT_TYPE)) {
-                                onInputClick(i);
-                            } else if (item.getItemType().equals(Constant.AUDIO_TYPE)) {
-                                onAudioClick(i);
-                            } else if (item.getItemType().equals(Constant.SELECT_TYPE)) {
-                                onSelectBoxClick(i);
-                            } else if (item.getItemType().equals(Constant.NAVIGATE_TYPE)) {
-                                onNavigationClick(i);
+                            switch (item.getItemType()) {
+                                case Constant.INPUT_TYPE:
+                                    onInputClick(i);
+                                    break;
+                                case Constant.AUDIO_TYPE:
+                                    onAudioClick(i);
+                                    break;
+                                case Constant.SELECT_TYPE:
+                                    onSelectBoxClick(i);
+                                    break;
+                                case Constant.NAVIGATE_TYPE:
+                                    onNavigationClick(i);
+                                    break;
                             }
                             break;
                         }
@@ -229,10 +227,10 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
             canvas.drawBitmap(mBitmapHighlight, matrix, mBitmapPaint);
         }
         onDrawHighlight(canvas);
-        onEarseHighlight(canvas);
+        onEarseHighlight();
     }
 
-    private void onEarseHighlight(Canvas canvas) {
+    private void onEarseHighlight() {
         if (!isEarseMode()) {
             return;
         }
@@ -257,14 +255,19 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
             BookItemModel item = mListBookItem.get(i);
             PointF from = pointFromBitmapPixel(rect.left, rect.top);
             PointF to = pointFromBitmapPixel(rect.right, rect.bottom);
-            if (item.getItemType().equals(Constant.INPUT_TYPE)) {
-                drawFieldInputItem(canvas, from, to, i);
-            } else if (item.getItemType().equals(Constant.AUDIO_TYPE)) {
-                drawAudioItem(canvas, from, to, i);
-            } else if (item.getItemType().equals(Constant.SELECT_TYPE)) {
-                drawSelectItem(canvas, from, to, i);
-            } else if (item.getItemType().equals(Constant.NAVIGATE_TYPE)) {
-                drawNavigateItem(canvas, from, to, i);
+            switch (item.getItemType()) {
+                case Constant.INPUT_TYPE:
+                    drawFieldInputItem(canvas, from, to, i);
+                    break;
+                case Constant.AUDIO_TYPE:
+                    drawAudioItem(canvas, from, to, i);
+                    break;
+                case Constant.SELECT_TYPE:
+                    drawSelectItem(canvas, from, to, i);
+                    break;
+                case Constant.NAVIGATE_TYPE:
+                    drawNavigateItem(canvas, from, to, i);
+                    break;
             }
             i++;
         }
@@ -331,7 +334,8 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
      */
     private void drawAudioItem(Canvas canvas, PointF from, PointF to, int position) {
         RectF rect = new RectF(from.x, from.y, to.x, to.y);
-        canvas.drawBitmap(mBmpAudio, null, rect, mBitmapPaint);
+        Bitmap bitmap = position == mPlayingPos ? mBmpPlaying : mBmpAudio;
+        canvas.drawBitmap(bitmap, null, rect, mBitmapPaint);
     }
 
     /**
@@ -426,10 +430,8 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
 
     private float getScale() {
         matrix.getValues(values);
-        float valueX = values[Matrix.MTRANS_X];
         int width = (int) (values[Matrix.MSCALE_X] * mBitmapHighlight.getWidth());
-        float scale = width / (float) mBitmapHighlight.getWidth();
-        return scale;
+        return width / (float) mBitmapHighlight.getWidth();
     }
 
     /**
@@ -444,11 +446,13 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
         }
     }
 
+    /**
+     * Check if is empty highlight
+     *
+     * @return true if highligh empty
+     */
     public boolean isEmptyHighlight() {
-        if (mIsCleared) {
-            return true;
-        }
-        return BitmapUtils.isTransparentOrEmpty(mBitmapHighlight);
+        return mIsCleared || BitmapUtils.isTransparentOrEmpty(mBitmapHighlight);
     }
 
     public Bitmap getHighlightBitmap() {
@@ -458,8 +462,8 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
     /**
      * Calculator alpha with percent
      *
-     * @param percent
-     * @return alpha
+     * @param percent   Percent alpha
+     * @return alpha    alpha
      */
     private int alpha(int percent) {
         return ((percent * 255) / 100);
@@ -477,7 +481,7 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
     }
 
     public String getItemResult(int position) {
-        if (mAnswers.containsKey(position)) {
+        if (mAnswers.indexOfKey(position) != -1) {
             return mAnswers.get(position);
         }
         return null;
@@ -538,7 +542,7 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
         }
     }
 
-    public void setAnswers(Map<Integer, String> answers) {
+    public void setAnswers(SparseArray<String> answers) {
         if (answers != null) {
             mAnswers = answers;
         }
@@ -547,6 +551,11 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
 
     public boolean isHighlightSaveAble() {
         return mIsHighlightSaveAble;
+    }
+
+    public void setPlayingPos(int pos) {
+        this.mPlayingPos = pos;
+        invalidate();
     }
 
     public enum BrushType {

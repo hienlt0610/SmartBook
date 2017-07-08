@@ -7,5 +7,5 @@ import android.graphics.Bitmap;
  */
 
 public interface ISaveHighlight {
-    void saveCurrentHighlight(int pageIndex, Bitmap bitmap);
+    void saveCurrentHighlight(Bitmap bitmap);
 }
