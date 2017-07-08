@@ -30,6 +30,7 @@
     <com.jude.easyrecyclerview.EasyRecyclerView
         android:id="@+id/fragBookDetail_rvImageDemo"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="wrap_content"
+        android:scrollbars="none"/>
 
 </LinearLayout>

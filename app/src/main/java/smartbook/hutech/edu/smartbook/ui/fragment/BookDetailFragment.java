@@ -8,15 +8,11 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.jude.easyrecyclerview.EasyRecyclerView;
 import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -35,7 +31,6 @@ public class BookDetailFragment extends BaseFragment implements RecyclerArrayAda
     EasyRecyclerView rvImageDemo;
 
     Book bookModel;
-    List<String> imageDemoList = new ArrayList<>();
     ImageDemoAdapter adapter;
 
     public static BookDetailFragment newInstance(Book model) {
@@ -55,7 +50,6 @@ public class BookDetailFragment extends BaseFragment implements RecyclerArrayAda
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         initialize();
-        addImages();
     }
 
     private void initialize(){
@@ -66,14 +60,11 @@ public class BookDetailFragment extends BaseFragment implements RecyclerArrayAda
         Glide.with(getContext()).load(bookModel.getCover()).into(imgBookCover);
         tvBookName.setText(bookModel.getTitle());
         adapter = new ImageDemoAdapter(getActivity());
-        rvImageDemo.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayout.HORIZONTAL, false));
+        adapter.addAll(bookModel.getmDemoPage());
+        rvImageDemo.setHorizontalScrollBarEnabled(false);
+        rvImageDemo.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         rvImageDemo.setAdapter(adapter);
         adapter.setOnItemClickListener(this);
-    }
-
-    private void addImages(){
-        imageDemoList.addAll(bookModel.getmDemoPage());
-        adapter.notifyDataSetChanged();
     }
 
     @OnClick(R.id.fragBookDetail_imgBack)
