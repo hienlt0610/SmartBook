@@ -17,5 +17,6 @@ public class Constant {
     public static final String AUDIO_TYPE = "audio";
     public static final String SELECT_TYPE = "select";
     public static final String NAVIGATE_TYPE = "navigate";
+    public static final String BOOK  = "book";
 
 }

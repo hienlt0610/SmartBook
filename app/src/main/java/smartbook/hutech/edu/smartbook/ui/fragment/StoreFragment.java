@@ -17,7 +17,6 @@ import smartbook.hutech.edu.smartbook.common.BaseModel;
 import smartbook.hutech.edu.smartbook.common.interfaces.BookListener;
 import smartbook.hutech.edu.smartbook.model.Book;
 import smartbook.hutech.edu.smartbook.model.CategoryList;
-import smartbook.hutech.edu.smartbook.ui.activity.BookReaderActivity;
 import smartbook.hutech.edu.smartbook.utils.SystemUtils;
 
 /*
@@ -40,7 +39,7 @@ public class StoreFragment extends BaseFragment implements BookListener {
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        init();
+        initialize();
         getData();
     }
 
@@ -53,7 +52,7 @@ public class StoreFragment extends BaseFragment implements BookListener {
         dismissLoading();
     }
 
-    private void init() {
+    private void initialize() {
         mCategoryAdapter = new CategoryAdapter(getActivity());
         rvCategory.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false));
         rvCategory.setAdapter(mCategoryAdapter);
@@ -74,7 +73,8 @@ public class StoreFragment extends BaseFragment implements BookListener {
     @Override
     public void onBookItemClick(int categoryPos, int bookPos) {
         Book book = mCategoryAdapter.getBook(categoryPos, bookPos);
-        BookReaderActivity.start(getActivity(), book);
+        BookDetailFragment fragment = BookDetailFragment.newInstance(book);
+        addFragment(fragment,true);
     }
 
     @Override

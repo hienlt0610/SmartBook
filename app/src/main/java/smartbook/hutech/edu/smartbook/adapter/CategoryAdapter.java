@@ -53,7 +53,7 @@ public class CategoryAdapter extends RecyclerArrayAdapter<Category> {
         this.onBookListener = onBookListener;
     }
 
-    public class CategoryViewHolder extends BaseViewHolder<Category> {
+    class CategoryViewHolder extends BaseViewHolder<Category> {
 
         @BindView(R.id.itemCategory_tvCategoryName)
         TextView tvCategoryName;

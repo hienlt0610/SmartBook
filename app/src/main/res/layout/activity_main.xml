@@ -6,8 +6,6 @@
     android:orientation="vertical"
     tools:context="smartbook.hutech.edu.smartbook.ui.activity.MainActivity">
 
-    <include layout="@layout/base_action_bar"/>
-
     <FrameLayout
         android:id="@+id/actMain_flContainer"
         android:layout_width="match_parent"

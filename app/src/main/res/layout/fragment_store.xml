@@ -4,10 +4,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
+    <include layout="@layout/base_action_bar"
+        android:id="@+id/action_bar"/>
+
     <com.jude.easyrecyclerview.EasyRecyclerView
         android:id="@+id/fragStore_rvCategory"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:layout_below="@+id/action_bar"/>
 
     <TextView
         android:id="@+id/fragStore_tvOffline"
