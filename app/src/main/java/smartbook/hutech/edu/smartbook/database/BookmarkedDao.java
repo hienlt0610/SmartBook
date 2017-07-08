@@ -41,7 +41,7 @@ public class BookmarkedDao extends AbstractDao<Bookmarked, Long> {
      * Creates the underlying database table.
      */
     public static void createTable(Database db, boolean ifNotExists) {
-        String constraint = ifNotExists ? "IF NOT EXISTS " : "";
+        String constraint = ifNotExists ? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "\"BOOKMARKED\" (" + //
                 "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
                 "\"BID\" TEXT," + // 1: bid
@@ -51,9 +51,7 @@ public class BookmarkedDao extends AbstractDao<Bookmarked, Long> {
                 " (\"BID\" ASC,\"PAGE\" ASC);");
     }
 
-    /**
-     * Drops the underlying database table.
-     */
+    /** Drops the underlying database table. */
     public static void dropTable(Database db, boolean ifExists) {
         String sql = "DROP TABLE " + (ifExists ? "IF EXISTS " : "") + "\"BOOKMARKED\"";
         db.execSQL(sql);
@@ -62,12 +60,12 @@ public class BookmarkedDao extends AbstractDao<Bookmarked, Long> {
     @Override
     protected final void bindValues(DatabaseStatement stmt, Bookmarked entity) {
         stmt.clearBindings();
-
+ 
         Long id = entity.getId();
         if (id != null) {
             stmt.bindLong(1, id);
         }
-
+ 
         String bid = entity.getBid();
         if (bid != null) {
             stmt.bindString(2, bid);
@@ -78,12 +76,12 @@ public class BookmarkedDao extends AbstractDao<Bookmarked, Long> {
     @Override
     protected final void bindValues(SQLiteStatement stmt, Bookmarked entity) {
         stmt.clearBindings();
-
+ 
         Long id = entity.getId();
         if (id != null) {
             stmt.bindLong(1, id);
         }
-
+ 
         String bid = entity.getBid();
         if (bid != null) {
             stmt.bindString(2, bid);
@@ -94,7 +92,7 @@ public class BookmarkedDao extends AbstractDao<Bookmarked, Long> {
     @Override
     public Long readKey(Cursor cursor, int offset) {
         return cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0);
-    }
+    }    
 
     @Override
     public Bookmarked readEntity(Cursor cursor, int offset) {
@@ -105,20 +103,20 @@ public class BookmarkedDao extends AbstractDao<Bookmarked, Long> {
         );
         return entity;
     }
-
+     
     @Override
     public void readEntity(Cursor cursor, Bookmarked entity, int offset) {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
         entity.setBid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
         entity.setPage(cursor.getInt(offset + 2));
-    }
-
+     }
+    
     @Override
     protected final Long updateKeyAfterInsert(Bookmarked entity, long rowId) {
         entity.setId(rowId);
         return rowId;
     }
-
+    
     @Override
     public Long getKey(Bookmarked entity) {
         if (entity != null) {
@@ -137,5 +135,5 @@ public class BookmarkedDao extends AbstractDao<Bookmarked, Long> {
     protected final boolean isEntityUpdateable() {
         return true;
     }
-
+    
 }

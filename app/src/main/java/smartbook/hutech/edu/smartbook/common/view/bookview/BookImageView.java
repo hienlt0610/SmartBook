@@ -14,6 +14,7 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
@@ -462,7 +463,7 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
     /**
      * Calculator alpha with percent
      *
-     * @param percent   Percent alpha
+     * @param percent Percent alpha
      * @return alpha    alpha
      */
     private int alpha(int percent) {
@@ -560,5 +561,16 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
 
     public enum BrushType {
         HIGHLIGHT, EARSE, NONE
+    }
+
+    public Bitmap getBitmap() {
+        Bitmap oldBitmap = ((BitmapDrawable) getDrawable()).getBitmap();
+        if (oldBitmap != null) {
+            Bitmap bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            canvas.drawBitmap(oldBitmap, matrix, mBitmapPaint);
+            return bitmap;
+        }
+        return null;
     }
 }

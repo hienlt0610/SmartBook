@@ -17,6 +17,7 @@ import smartbook.hutech.edu.smartbook.common.BaseModel;
 import smartbook.hutech.edu.smartbook.common.interfaces.BookListener;
 import smartbook.hutech.edu.smartbook.model.Book;
 import smartbook.hutech.edu.smartbook.model.CategoryList;
+import smartbook.hutech.edu.smartbook.ui.activity.BookReaderActivity;
 import smartbook.hutech.edu.smartbook.utils.SystemUtils;
 
 /*
@@ -61,7 +62,7 @@ public class StoreFragment extends BaseFragment implements BookListener {
 
     private void getData() {
         boolean isNetwork = SystemUtils.isNetworkAvailable(getActivity());
-        if(!isNetwork){
+        if (!isNetwork) {
             tvOffline.setVisibility(View.VISIBLE);
             rvCategory.setVisibility(View.GONE);
             return;
@@ -73,8 +74,9 @@ public class StoreFragment extends BaseFragment implements BookListener {
     @Override
     public void onBookItemClick(int categoryPos, int bookPos) {
         Book book = mCategoryAdapter.getBook(categoryPos, bookPos);
-        BookDetailFragment fragment = BookDetailFragment.newInstance(book);
-        addFragment(fragment,true);
+//        BookDetailFragment fragment = BookDetailFragment.newInstance(book);
+//        addFragment(fragment,true);
+        BookReaderActivity.start(getActivity(), book);
     }
 
     @Override

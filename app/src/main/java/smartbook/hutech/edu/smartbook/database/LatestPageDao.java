@@ -41,7 +41,7 @@ public class LatestPageDao extends AbstractDao<LatestPage, Long> {
      * Creates the underlying database table.
      */
     public static void createTable(Database db, boolean ifNotExists) {
-        String constraint = ifNotExists ? "IF NOT EXISTS " : "";
+        String constraint = ifNotExists ? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "\"LATEST_PAGE\" (" + //
                 "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
                 "\"BID\" TEXT," + // 1: bid
@@ -53,9 +53,7 @@ public class LatestPageDao extends AbstractDao<LatestPage, Long> {
                 " (\"PAGE\" ASC);");
     }
 
-    /**
-     * Drops the underlying database table.
-     */
+    /** Drops the underlying database table. */
     public static void dropTable(Database db, boolean ifExists) {
         String sql = "DROP TABLE " + (ifExists ? "IF EXISTS " : "") + "\"LATEST_PAGE\"";
         db.execSQL(sql);
@@ -64,12 +62,12 @@ public class LatestPageDao extends AbstractDao<LatestPage, Long> {
     @Override
     protected final void bindValues(DatabaseStatement stmt, LatestPage entity) {
         stmt.clearBindings();
-
+ 
         Long id = entity.getId();
         if (id != null) {
             stmt.bindLong(1, id);
         }
-
+ 
         String bid = entity.getBid();
         if (bid != null) {
             stmt.bindString(2, bid);
@@ -80,12 +78,12 @@ public class LatestPageDao extends AbstractDao<LatestPage, Long> {
     @Override
     protected final void bindValues(SQLiteStatement stmt, LatestPage entity) {
         stmt.clearBindings();
-
+ 
         Long id = entity.getId();
         if (id != null) {
             stmt.bindLong(1, id);
         }
-
+ 
         String bid = entity.getBid();
         if (bid != null) {
             stmt.bindString(2, bid);
@@ -96,7 +94,7 @@ public class LatestPageDao extends AbstractDao<LatestPage, Long> {
     @Override
     public Long readKey(Cursor cursor, int offset) {
         return cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0);
-    }
+    }    
 
     @Override
     public LatestPage readEntity(Cursor cursor, int offset) {
@@ -107,20 +105,20 @@ public class LatestPageDao extends AbstractDao<LatestPage, Long> {
         );
         return entity;
     }
-
+     
     @Override
     public void readEntity(Cursor cursor, LatestPage entity, int offset) {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
         entity.setBid(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
         entity.setPage(cursor.getInt(offset + 2));
-    }
-
+     }
+    
     @Override
     protected final Long updateKeyAfterInsert(LatestPage entity, long rowId) {
         entity.setId(rowId);
         return rowId;
     }
-
+    
     @Override
     public Long getKey(LatestPage entity) {
         if (entity != null) {
@@ -139,5 +137,5 @@ public class LatestPageDao extends AbstractDao<LatestPage, Long> {
     protected final boolean isEntityUpdateable() {
         return true;
     }
-
+    
 }

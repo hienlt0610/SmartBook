@@ -43,7 +43,7 @@ public class AnsweredDao extends AbstractDao<Answered, Long> {
      * Creates the underlying database table.
      */
     public static void createTable(Database db, boolean ifNotExists) {
-        String constraint = ifNotExists ? "IF NOT EXISTS " : "";
+        String constraint = ifNotExists ? "IF NOT EXISTS ": "";
         db.execSQL("CREATE TABLE " + constraint + "\"ANSWERED\" (" + //
                 "\"_id\" INTEGER PRIMARY KEY AUTOINCREMENT ," + // 0: id
                 "\"BID\" TEXT," + // 1: bid
@@ -55,9 +55,7 @@ public class AnsweredDao extends AbstractDao<Answered, Long> {
                 " (\"BID\" ASC,\"PAGE\" ASC,\"quiz_index\" ASC);");
     }
 
-    /**
-     * Drops the underlying database table.
-     */
+    /** Drops the underlying database table. */
     public static void dropTable(Database db, boolean ifExists) {
         String sql = "DROP TABLE " + (ifExists ? "IF EXISTS " : "") + "\"ANSWERED\"";
         db.execSQL(sql);
@@ -66,19 +64,19 @@ public class AnsweredDao extends AbstractDao<Answered, Long> {
     @Override
     protected final void bindValues(DatabaseStatement stmt, Answered entity) {
         stmt.clearBindings();
-
+ 
         Long id = entity.getId();
         if (id != null) {
             stmt.bindLong(1, id);
         }
-
+ 
         String bid = entity.getBid();
         if (bid != null) {
             stmt.bindString(2, bid);
         }
         stmt.bindLong(3, entity.getPage());
         stmt.bindLong(4, entity.getQuizIndex());
-
+ 
         String quizAnswer = entity.getQuizAnswer();
         if (quizAnswer != null) {
             stmt.bindString(5, quizAnswer);
@@ -88,19 +86,19 @@ public class AnsweredDao extends AbstractDao<Answered, Long> {
     @Override
     protected final void bindValues(SQLiteStatement stmt, Answered entity) {
         stmt.clearBindings();
-
+ 
         Long id = entity.getId();
         if (id != null) {
             stmt.bindLong(1, id);
         }
-
+ 
         String bid = entity.getBid();
         if (bid != null) {
             stmt.bindString(2, bid);
         }
         stmt.bindLong(3, entity.getPage());
         stmt.bindLong(4, entity.getQuizIndex());
-
+ 
         String quizAnswer = entity.getQuizAnswer();
         if (quizAnswer != null) {
             stmt.bindString(5, quizAnswer);
@@ -110,7 +108,7 @@ public class AnsweredDao extends AbstractDao<Answered, Long> {
     @Override
     public Long readKey(Cursor cursor, int offset) {
         return cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0);
-    }
+    }    
 
     @Override
     public Answered readEntity(Cursor cursor, int offset) {
@@ -123,7 +121,7 @@ public class AnsweredDao extends AbstractDao<Answered, Long> {
         );
         return entity;
     }
-
+     
     @Override
     public void readEntity(Cursor cursor, Answered entity, int offset) {
         entity.setId(cursor.isNull(offset + 0) ? null : cursor.getLong(offset + 0));
@@ -131,14 +129,14 @@ public class AnsweredDao extends AbstractDao<Answered, Long> {
         entity.setPage(cursor.getInt(offset + 2));
         entity.setQuizIndex(cursor.getInt(offset + 3));
         entity.setQuizAnswer(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
-    }
-
+     }
+    
     @Override
     protected final Long updateKeyAfterInsert(Answered entity, long rowId) {
         entity.setId(rowId);
         return rowId;
     }
-
+    
     @Override
     public Long getKey(Answered entity) {
         if (entity != null) {
@@ -157,5 +155,5 @@ public class AnsweredDao extends AbstractDao<Answered, Long> {
     protected final boolean isEntityUpdateable() {
         return true;
     }
-
+    
 }

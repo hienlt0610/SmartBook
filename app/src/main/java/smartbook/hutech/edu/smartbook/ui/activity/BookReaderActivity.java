@@ -3,6 +3,7 @@ package smartbook.hutech.edu.smartbook.ui.activity;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -15,13 +16,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.text.InputType;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.BounceInterpolator;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +31,10 @@ import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
+import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.text.Text;
+import com.google.android.gms.vision.text.TextBlock;
+import com.google.android.gms.vision.text.TextRecognizer;
 import com.google.gson.Gson;
 import com.mikepenz.iconics.IconicsDrawable;
 import com.mikepenz.iconics.view.IconicsButton;
@@ -39,6 +44,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -46,6 +53,9 @@ import butterknife.OnLongClick;
 import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.OnPermissionDenied;
 import permissions.dispatcher.RuntimePermissions;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import smartbook.hutech.edu.smartbook.R;
 import smartbook.hutech.edu.smartbook.adapter.BookReaderPagerAdapter;
 import smartbook.hutech.edu.smartbook.common.App;
@@ -55,9 +65,13 @@ import smartbook.hutech.edu.smartbook.common.Constant;
 import smartbook.hutech.edu.smartbook.common.interfaces.IAudioAction;
 import smartbook.hutech.edu.smartbook.common.interfaces.ISaveHighlight;
 import smartbook.hutech.edu.smartbook.common.interfaces.ISwipePage;
+import smartbook.hutech.edu.smartbook.common.network.api.TranslateApi;
+import smartbook.hutech.edu.smartbook.common.network.builder.ApiGenerator;
+import smartbook.hutech.edu.smartbook.common.network.model.TranslateModel;
 import smartbook.hutech.edu.smartbook.common.view.ExtendedViewPager;
 import smartbook.hutech.edu.smartbook.common.view.bookview.BookImageView;
 import smartbook.hutech.edu.smartbook.common.view.bookview.HighlightConfigDialog;
+import smartbook.hutech.edu.smartbook.common.view.bookview.TranslateView;
 import smartbook.hutech.edu.smartbook.database.Bookmarked;
 import smartbook.hutech.edu.smartbook.database.BookmarkedDao;
 import smartbook.hutech.edu.smartbook.database.LatestPage;
@@ -67,6 +81,7 @@ import smartbook.hutech.edu.smartbook.model.HighlightConfig;
 import smartbook.hutech.edu.smartbook.model.bookviewer.BookInfoModel;
 import smartbook.hutech.edu.smartbook.model.bookviewer.BookListPageModel;
 import smartbook.hutech.edu.smartbook.model.bookviewer.BookPageModel;
+import smartbook.hutech.edu.smartbook.model.bookviewer.Word;
 import smartbook.hutech.edu.smartbook.task.TaskSaveBitmap;
 import smartbook.hutech.edu.smartbook.ui.fragment.PageFragment;
 import smartbook.hutech.edu.smartbook.utils.FileUtils;
@@ -79,7 +94,7 @@ import timber.log.Timber;
 
 @RuntimePermissions
 public class BookReaderActivity extends BaseActivity implements ViewPager.OnPageChangeListener,
-        ISwipePage, ISaveHighlight, IAudioAction {
+        ISwipePage, ISaveHighlight, IAudioAction, TranslateView.OnTextTranslateSelectListener {
 
     public static final int MENU_SHOW_TABLE_OF_CONTENT = 1;
     public static final int MENU_PAGE_INDEX = 2;
@@ -98,12 +113,14 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     Button mBtnActionHighlight;
     @BindView(R.id.activityBookViewer_btn_acion_clear)
     Button mBtnActionEarse;
+    @BindView(R.id.activityBookViewer_btn_action_translate)
+    Button mBtnActionTranslate;
     @BindView(R.id.activityBookViewer_btn_audio_menu)
     FloatingActionMenu mFamAudio;
     @BindView(R.id.activityBookViewer_btn_play_pause_audio)
     FloatingActionButton mFabPlayPause;
-    @BindView(R.id.img_test)
-    ImageView mImageView;
+    @BindView(R.id.activityBookViewer_translate_view)
+    TranslateView mTranslateView;
 
     private Book mBook;
 
@@ -114,9 +131,12 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     private boolean mIsBookmark;
     private boolean mIsToolBarShow = false;
     private boolean mIsEmptyPage = true;
+    private boolean mIsTranslateMode = false;
     private MediaPlayer mPlayer;
     private int[] mPagePlaying;
     private boolean mIsPause;
+    private TextRecognizer mTextRecognizer;
+    MaterialDialog mMaterialDialog;
 
     /**
      * Start activity With parameter
@@ -146,6 +166,8 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mFamAudio.getMenuIconView().setImageResource(R.drawable.ic_volume);
         mFamAudio.hideMenu(false);
+        mTranslateView.setTranslateSelectListener(this);
+        mTextRecognizer = new TextRecognizer.Builder(this).build();
     }
 
     private void initMediaPlayer() {
@@ -386,7 +408,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                     Toast.makeText(this, R.string.book_reader_empty_page_error, Toast.LENGTH_SHORT).show();
                     return false;
                 }
-                new MaterialDialog.Builder(this)
+                mMaterialDialog = new MaterialDialog.Builder(this)
                         .title(R.string.book_reader_page_move)
                         .content(R.string.book_reader_input_page_to_move)
                         .inputType(InputType.TYPE_CLASS_NUMBER)
@@ -440,7 +462,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     /**
      * Set view display current page
      *
-     * @param position  Current position of ViewPager
+     * @param position Current position of ViewPager
      */
     private void setCurrentPageDisplay(int position) {
         invalidateOptionsMenu();
@@ -495,14 +517,14 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
      */
     @OnClick(R.id.activityBookViewer_btn_action_highlight)
     void onActionHighLightClick(View view) {
-
+        mIsTranslateMode = false;
         PageFragment pageFragment = getFocusPageFragment();
         if (pageFragment != null) {
             BookImageView bookImageView = pageFragment.getBookImageView();
             if (bookImageView != null) {
-
                 //Disable Earse mode if it available
                 mBtnActionEarse.setTextColor(Color.WHITE);
+                mBtnActionTranslate.setTextColor(Color.WHITE);
                 //Enable or disable highlight mode
                 if (bookImageView.isHighlightMode()) {
                     mBtnActionHighlight.setTextColor(ContextCompat.getColor(this, R.color.material_color_white));
@@ -547,6 +569,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
      */
     @OnClick(R.id.activityBookViewer_btn_acion_clear)
     void onActionClearClick(View view) {
+        mIsTranslateMode = false;
         PageFragment pageFragment = getFocusPageFragment();
         if (pageFragment != null) {
             BookImageView bookImageView = pageFragment.getBookImageView();
@@ -554,6 +577,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
 
                 //Disable Highlight mode if it available
                 mBtnActionHighlight.setTextColor(Color.WHITE);
+                mBtnActionTranslate.setTextColor(Color.WHITE);
 
                 //Enable or disable earse mode
                 if (bookImageView.isEarseMode()) {
@@ -574,7 +598,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
 
     @OnLongClick(R.id.activityBookViewer_btn_acion_clear)
     boolean onActionClearLongClick(View view) {
-        new MaterialDialog.Builder(this)
+        mMaterialDialog = new MaterialDialog.Builder(this)
                 .content(R.string.book_clear_highlight)
                 .positiveText(android.R.string.ok)
                 .negativeText(android.R.string.cancel)
@@ -837,5 +861,117 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     void onActionBackPlayingPage() {
         mViewPager.setCurrentItem(mPagePlaying[0]);
         mFamAudio.close(true);
+    }
+
+    @OnClick(R.id.activityBookViewer_btn_action_translate)
+    void onActionTranslateClick(View view) {
+        if (!mTextRecognizer.isOperational()) {
+            // Note: The first time that an app using a Vision API is installed on a
+            // device, GMS will download a native libraries to the device in order to do detection.
+            // Usually this completes before the app is run for the first time.  But if that
+            // download has not yet completed, then the above call will not detect any text,
+            // barcodes, or faces.
+            // isOperational() can be used to check if the required native libraries are currently
+            // available.  The detectors will automatically become operational once the library
+            // downloads complete on device.
+            Timber.w("Detector dependencies are not yet available.");
+
+            // Check for low storage.  If there is low storage, the native library will not be
+            // downloaded, so detection will not become operational.
+            IntentFilter lowstorageFilter = new IntentFilter(Intent.ACTION_DEVICE_STORAGE_LOW);
+            boolean hasLowStorage = registerReceiver(null, lowstorageFilter) != null;
+
+            if (hasLowStorage) {
+                Toast.makeText(this, "Low Storage", Toast.LENGTH_LONG).show();
+                Timber.w("Low Storage");
+            }
+        }
+        //Reset all button state
+        mIsTranslateMode = !mIsTranslateMode;
+        //reset button
+        mBtnActionHighlight.setTextColor(Color.WHITE);
+        mBtnActionEarse.setTextColor(Color.WHITE);
+        mBtnActionTranslate.setTextColor(Color.WHITE);
+        //Default hide translate view
+        mTranslateView.setVisibility(View.GONE);
+        if (mIsTranslateMode) {
+            PageFragment pageFragment = getFocusPageFragment();
+            if (pageFragment != null) {
+                pageFragment.getBookImageView().setBrushType(BookImageView.BrushType.NONE);
+                Bitmap bitmap = pageFragment.getBookImageView().getBitmap();
+                mTranslateView.setImageBitmap(bitmap);
+                mTranslateView.setVisibility(mIsTranslateMode ? View.VISIBLE : View.GONE);
+                recognitionText(bitmap);
+            }
+            //Set selected button
+            mBtnActionTranslate.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        }
+        mViewPager.setTouchesAllowed(!mIsTranslateMode);
+    }
+
+    /**
+     * Recognition text from bitmap and send to translate view
+     *
+     * @param bitmap
+     */
+    private void recognitionText(Bitmap bitmap) {
+        if (bitmap == null) {
+            return;
+        }
+        Frame frame = new Frame.Builder().setBitmap(bitmap).build();
+        SparseArray<TextBlock> textBlocks = mTextRecognizer.detect(frame);
+        ArrayList<Word> wordList = new ArrayList<>();
+        int index = 0;
+        for (int i = 0; i < textBlocks.size(); i++) {
+            TextBlock textBlock = textBlocks.get(textBlocks.keyAt(i));
+            List<? extends Text> textComponents = textBlock.getComponents();
+            for (Text textLine : textComponents) {
+                List<? extends Text> words = textLine.getComponents();
+                for (Text word : words) {
+                    Word w = new Word();
+                    w.setIndex(index);
+                    w.setValue(word.getValue());
+                    w.setRect(word.getBoundingBox());
+                    wordList.add(w);
+                    index++;
+                }
+            }
+        }
+        mTranslateView.setListWord(wordList);
+    }
+
+    /**
+     * Call when get text from translate mode
+     *
+     * @param text Text value
+     */
+    @Override
+    public void onTextSelected(final String text) {
+        mMaterialDialog = new MaterialDialog.Builder(this)
+                .title("Xử lý nội dung")
+                .content("Đang xử lý, vui lòng chờ")
+                .progress(true, 0)
+                .show();
+        TranslateApi translateApi = ApiGenerator.getInstance().createTranslateRetrofit().create(TranslateApi.class);
+        translateApi.translate(Constant.TRANSLATE_API_URL, text, "en-vi", Constant.YANDEX_TRANSLATE_API_KEY)
+                .enqueue(new Callback<TranslateModel>() {
+                    @Override
+                    public void onResponse(Call<TranslateModel> call, Response<TranslateModel> response) {
+                        mMaterialDialog.cancel();
+                        if (response.isSuccessful()) {
+                            String content = StringUtils.join(response.body().getText(), "\n");
+                            mMaterialDialog = new MaterialDialog.Builder(BookReaderActivity.this)
+                                    .title("Kết quả")
+                                    .content(content)
+                                    .show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<TranslateModel> call, Throwable t) {
+                        Timber.e(t);
+                        mMaterialDialog.cancel();
+                    }
+                });
     }
 }

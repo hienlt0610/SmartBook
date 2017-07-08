@@ -15,6 +15,13 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"/>
 
+    <smartbook.hutech.edu.smartbook.common.view.bookview.TranslateView
+        android:id="@+id/activityBookViewer_translate_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:visibility="gone"/>
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -156,6 +163,18 @@
                 android:textAlignment="center"
                 android:textColor="@color/material_color_white"
                 android:textSize="24dp"/>
+
+            <com.mikepenz.iconics.view.IconicsButton
+                android:id="@+id/activityBookViewer_btn_action_translate"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="?android:selectableItemBackground"
+                android:minHeight="0dp"
+                android:text="{gmi-translate}"
+                android:textAlignment="center"
+                android:textColor="@color/material_color_white"
+                android:textSize="24dp"/>
         </LinearLayout>
     </LinearLayout>
 
@@ -168,10 +187,4 @@
         android:text="@string/book_reader_empty_page_error"
         android:textSize="@dimen/text_normal"
         android:visibility="gone"/>
-
-    <ImageView
-        android:id="@+id/img_test"
-        android:layout_width="200dp"
-        android:layout_height="100dp"
-        android:layout_below="@id/toolbar"/>
 </RelativeLayout>
