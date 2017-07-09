@@ -1,5 +1,6 @@
 package smartbook.hutech.edu.smartbook.ui.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,10 +15,11 @@ import smartbook.hutech.edu.smartbook.R;
 import smartbook.hutech.edu.smartbook.adapter.CategoryAdapter;
 import smartbook.hutech.edu.smartbook.common.BaseFragment;
 import smartbook.hutech.edu.smartbook.common.BaseModel;
+import smartbook.hutech.edu.smartbook.common.Constant;
 import smartbook.hutech.edu.smartbook.common.interfaces.BookListener;
 import smartbook.hutech.edu.smartbook.model.Book;
 import smartbook.hutech.edu.smartbook.model.CategoryList;
-import smartbook.hutech.edu.smartbook.ui.activity.BookReaderActivity;
+import smartbook.hutech.edu.smartbook.ui.activity.BookDetailActivity;
 import smartbook.hutech.edu.smartbook.utils.SystemUtils;
 
 /*
@@ -74,9 +76,14 @@ public class StoreFragment extends BaseFragment implements BookListener {
     @Override
     public void onBookItemClick(int categoryPos, int bookPos) {
         Book book = mCategoryAdapter.getBook(categoryPos, bookPos);
-//        BookDetailFragment fragment = BookDetailFragment.newInstance(book);
-//        addFragment(fragment,true);
-        BookReaderActivity.start(getActivity(), book);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(Constant.BOOK,book);
+        Intent intent = new Intent(getActivity(), BookDetailActivity.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
+        //BookDetailFragment fragment = BookDetailFragment.newInstance(book);
+        //addFragment(fragment,true);
+//        BookReaderActivity.start(getActivity(), book);
     }
 
     @Override
