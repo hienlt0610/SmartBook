@@ -33,6 +33,8 @@
         <activity android:name=".ui.activity.BookReaderActivity" />
         <activity android:name=".ui.activity.TableOfContentActivity" />
         <activity android:name=".ui.activity.BookDetailActivity" />
+        <activity android:name=".ui.activity.MoreBookActivity"/>
+        <activity android:name=".ui.activity.PagePreviewActivity"/>
     </application>
     <meta-data
         android:name="com.google.android.gms.vision.DEPENDENCIES"

@@ -1,34 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:gravity="center"
-    android:padding="@dimen/_16dp"
-    android:orientation="vertical">
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="wrap_content"
+              android:layout_height="wrap_content"
+              android:gravity="center"
+              android:orientation="vertical"
+              android:padding="@dimen/_10dp">
 
     <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/itemBook_imgBook"
-        android:layout_width="wrap_content"
-        android:layout_height="200dp"
+        android:layout_width="@dimen/_120dp"
+        android:layout_height="@dimen/_190dp"
         android:adjustViewBounds="true"
+        android:scaleType="centerCrop"
         android:src="@drawable/img_demo"
-        app:riv_corner_radius="5dip" />
+        app:riv_corner_radius="@dimen/_5dp"/>
 
     <TextView
         android:id="@+id/itemBook_tvBookTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/_120dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/_10dp"
         android:layout_marginTop="@dimen/_10dp"
-        android:text="sGalaxy"
-        android:textSize="@dimen/text_large" />
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textSize="@dimen/text_normal"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Miễn Phí"
         android:textColor="@color/material_color_orange_500"
-        android:visibility="gone" />
+        android:visibility="gone"/>
 
 </LinearLayout>

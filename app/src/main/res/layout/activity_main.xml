@@ -1,14 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="smartbook.hutech.edu.smartbook.ui.activity.MainActivity">
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              tools:context="smartbook.hutech.edu.smartbook.ui.activity.MainActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:gravity="center">
+
+        <RadioGroup
+            android:id="@+id/act_main_rg_tab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/act_main_rd_online"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_main_tab_border_left"
+                android:button="@null"
+                android:gravity="center"
+                android:padding="5dp"
+                android:text="Trực tuyến"/>
+
+            <RadioButton
+                android:id="@+id/act_main_rd_offline"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_main_tab_border_right"
+                android:button="@null"
+                android:gravity="center"
+                android:padding="5dp"
+                android:text="Tủ sách"/>
+        </RadioGroup>
+
+    </android.support.design.widget.AppBarLayout>
 
     <FrameLayout
         android:id="@+id/actMain_flContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_weight="1"/>
 
 </LinearLayout>
