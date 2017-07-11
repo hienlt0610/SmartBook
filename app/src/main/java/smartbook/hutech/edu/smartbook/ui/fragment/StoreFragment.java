@@ -88,7 +88,7 @@ public class StoreFragment extends BaseFragment implements BookListener {
     @Override
     public void onClickMore(int categoryPos) {
         Category category = mCategoryAdapter.getItem(categoryPos);
-        Intent intent = MoreBookActivity.newIntent(getActivity(), category.getCategoryId());
+        Intent intent = MoreBookActivity.newIntent(getActivity(), category);
         startActivity(intent);
     }
 

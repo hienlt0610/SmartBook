@@ -14,6 +14,8 @@ import com.jude.easyrecyclerview.adapter.BaseViewHolder;
 import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
 import com.makeramen.roundedimageview.RoundedImageView;
 
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import smartbook.hutech.edu.smartbook.R;
@@ -21,8 +23,13 @@ import smartbook.hutech.edu.smartbook.model.Book;
 
 public class BookAdapter extends RecyclerArrayAdapter<Book> {
 
+
     public BookAdapter(Context context) {
         super(context);
+    }
+
+    public BookAdapter(Context context, List<Book> objects) {
+        super(context, objects);
     }
 
     @Override

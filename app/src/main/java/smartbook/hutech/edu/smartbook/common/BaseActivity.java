@@ -130,4 +130,5 @@ public abstract class BaseActivity extends AppCompatActivity {
             mDialogView.dismiss();
         }
     }
+
 }

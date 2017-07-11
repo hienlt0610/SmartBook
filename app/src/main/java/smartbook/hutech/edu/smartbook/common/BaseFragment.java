@@ -3,9 +3,11 @@ package smartbook.hutech.edu.smartbook.common;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -125,4 +127,30 @@ public abstract class BaseFragment extends Fragment implements ApiResponseListen
     public void onDataResponse(int nCode, BaseModel nData) {
 
     }
+
+    public void setTitle(View v, String title) {
+        TextView view = (TextView) v.findViewById(R.id.actionbar_tvTitle);
+        if (view != null) {
+            view.setText(title);
+        }
+    }
+
+    public void setupBackButton(View v) {
+        View view = v.findViewById(R.id.actionbar_imgBack);
+        if (view != null) {
+            view.setOnClickListener(onBackClick);
+        }
+    }
+
+    View.OnClickListener onBackClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            FragmentManager fm = getFragmentManager();
+            if (getActivity() instanceof MainActivity && fm.getBackStackEntryCount() > 0) {
+                fm.popBackStack();
+            } else {
+                getActivity().onBackPressed();
+            }
+        }
+    };
 }
