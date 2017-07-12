@@ -23,4 +23,5 @@
     <string name="book_reader_translate_result">Kết quả</string>
     <string name="book_reader_translate_loading">Đang xử lý, vui lòng chờ</string>
     <string name="book_reader_translate_progress_title">Xử lý nội dung</string>
+    <string name="book_detail_file_size">Dung lượng: %1$s</string>
 </resources>

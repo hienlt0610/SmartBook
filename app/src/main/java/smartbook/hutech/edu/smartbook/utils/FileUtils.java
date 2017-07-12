@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by hienl on 6/26/2017.
@@ -445,6 +446,23 @@ public class FileUtils {
         if (StringUtils.isEmpty(name)) return file;
         String newPath = file.getAbsolutePath() + File.separator + name;
         return new File(newPath);
+    }
+
+    private static final String[] SI_UNITS = {"B", "kB", "MB", "GB", "TB", "PB", "EB"};
+    private static final String[] BINARY_UNITS = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"};
+
+    public static String humanReadableByteCount(final long bytes, final boolean useSIUnits, final Locale locale) {
+        final String[] units = useSIUnits ? SI_UNITS : BINARY_UNITS;
+        final int base = useSIUnits ? 1000 : 1024;
+
+        // When using the smallest unit no decimal point is needed, because it's the exact number.
+        if (bytes < base) {
+            return bytes + " " + units[0];
+        }
+
+        final int exponent = (int) (Math.log(bytes) / Math.log(base));
+        final String unit = units[exponent];
+        return String.format(locale, "%.1f %s", bytes / Math.pow(base, exponent), unit);
     }
 
 }

@@ -55,7 +55,7 @@
                     android:id="@+id/fragBookDetail_tv_capacity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Dung lượng: 10MB" />
+                    android:text="@string/book_detail_file_size"/>
             </LinearLayout>
 
             <include layout="@layout/view_line"/>

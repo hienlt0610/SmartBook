@@ -27,8 +27,11 @@ public class Book extends BaseModel {
     @SerializedName("cover")
     private String mCover;
 
-    @SerializedName("download")
+    @SerializedName("downloadUrl")
     private String mDownload;
+
+    @SerializedName("fileSize")
+    private long mFileSize;
 
     @SerializedName("demoPage")
     private List<String> mDemoPage;
@@ -100,5 +103,21 @@ public class Book extends BaseModel {
 
     public void setBookId(Integer bookId) {
         mBookId = bookId;
+    }
+
+    public long getFileSize() {
+        return mFileSize;
+    }
+
+    public void setFileSize(long fileSize) {
+        mFileSize = fileSize;
+    }
+
+    public List<String> getDemoPage() {
+        return mDemoPage;
+    }
+
+    public void setDemoPage(List<String> demoPage) {
+        mDemoPage = demoPage;
     }
 }

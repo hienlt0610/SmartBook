@@ -18,6 +18,8 @@ import com.bumptech.glide.Glide;
 import com.jude.easyrecyclerview.EasyRecyclerView;
 import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
 
+import java.util.Locale;
+
 import butterknife.BindView;
 import butterknife.OnClick;
 import smartbook.hutech.edu.smartbook.R;
@@ -27,6 +29,7 @@ import smartbook.hutech.edu.smartbook.common.Constant;
 import smartbook.hutech.edu.smartbook.common.helper.ResizableViewHelper;
 import smartbook.hutech.edu.smartbook.common.helper.StartSnapHelper;
 import smartbook.hutech.edu.smartbook.model.Book;
+import smartbook.hutech.edu.smartbook.utils.FileUtils;
 
 public class BookDetailActivity extends BaseActivity implements RecyclerArrayAdapter.OnItemClickListener {
 
@@ -63,7 +66,11 @@ public class BookDetailActivity extends BaseActivity implements RecyclerArrayAda
         //Load cover image
         Glide.with(this).load(bookModel.getCover()).into(imgBookCover);
         //Init description
+        mTvDescription.setText(bookModel.getDescription());
         ResizableViewHelper.doResizeTextView(mTvDescription, 3, "Xem thêm", true);
+        //Init file size
+        String strFileSize = FileUtils.humanReadableByteCount(bookModel.getFileSize(), true, Locale.US);
+        tvCapacity.setText(getString(R.string.book_detail_file_size, strFileSize));
         //Init title
         tvBookName.setText(bookModel.getTitle());
         adapter = new ImageDemoAdapter(this);
