@@ -72,7 +72,7 @@ public class CategoryAdapter extends RecyclerArrayAdapter<Category> {
         CategoryViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this,itemView);
-
+            rvBooks.getRecyclerView().hasFixedSize();
             rvBooks.setHorizontalScrollBarEnabled(false);
             bookAdapter = new BookAdapter(getContext());
             rvBooks.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));

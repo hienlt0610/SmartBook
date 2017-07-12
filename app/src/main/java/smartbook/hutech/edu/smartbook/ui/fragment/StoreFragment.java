@@ -60,6 +60,7 @@ public class StoreFragment extends BaseFragment implements BookListener {
     private void initialize() {
         mCategoryAdapter = new CategoryAdapter(getActivity());
         rvCategory.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayout.VERTICAL, false));
+        rvCategory.getRecyclerView().hasFixedSize();
         rvCategory.setAdapter(mCategoryAdapter);
         mCategoryAdapter.setOnBookListener(this);
     }

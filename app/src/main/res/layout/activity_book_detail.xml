@@ -58,6 +58,8 @@
                     android:text="Dung lượng: 10MB" />
             </LinearLayout>
 
+            <include layout="@layout/view_line"/>
+
             <!--Description-->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -80,10 +82,13 @@
                     android:textSize="@dimen/text_normal" />
             </LinearLayout>
 
+            <include layout="@layout/view_line"/>
+
             <com.jude.easyrecyclerview.EasyRecyclerView
                 android:id="@+id/fragBookDetail_rvImageDemo"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:layout_marginTop="@dimen/_12dp"
                 android:scrollbars="none" />
 
         </LinearLayout>
