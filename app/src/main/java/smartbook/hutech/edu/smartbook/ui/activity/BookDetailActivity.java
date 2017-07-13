@@ -25,6 +25,7 @@ import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.model.FileDownloadStatus;
 
 import java.io.File;
+import java.util.List;
 import java.util.Locale;
 
 import butterknife.BindView;
@@ -142,10 +143,11 @@ public class BookDetailActivity extends BaseActivity implements RecyclerArrayAda
      */
     @Override
     public void onItemClick(int position) {
-//        String imgUrl = adapter.getItem(position);
-//        Intent intent = PagePreviewActivity.newIntent(this, imgUrl);
-//        startActivity(intent);
-        BookReaderActivity.start(this, bookModel);
+        //String imgUrl = adapter.getItem(position);
+        List<String> list = adapter.getAllData();
+        Intent intent = PagePreviewActivity.newIntent(this, list);
+        startActivity(intent);
+        //BookReaderActivity.start(this, bookModel);
     }
 
     /**
