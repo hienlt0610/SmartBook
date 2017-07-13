@@ -4,6 +4,7 @@ package smartbook.hutech.edu.smartbook.adapter;
  */
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.support.v4.view.PagerAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,10 +47,16 @@ public class PhotoPagerAdapter extends PagerAdapter {
     public Object instantiateItem(ViewGroup container, int position) {
         String url = data.get(position);
         View itemView = layoutInflater.inflate(R.layout.item_view_pager, container, false);
-        ImageView imageView = (ImageView) itemView.findViewById(R.id.itemViewPager_imgPhoto);
+        final ImageView imageView = (ImageView) itemView.findViewById(R.id.itemViewPager_imgPhoto);
         if (StringUtils.isURL(url)) {
             imageView.setImageDrawable(null);
-            Glide.with(context).load(url).into(imageView);
+//            Glide.with(context).load(url).into(imageView);
+            Glide.with(context).load(url).asBitmap().into(new SimpleTarget<Bitmap>() {
+                @Override
+                public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                    imageView.setImageBitmap(resource);
+                }
+            });
         }
         container.addView(itemView);
         return itemView;

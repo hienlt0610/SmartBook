@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <ImageView
+    <smartbook.hutech.edu.smartbook.common.view.bookview.TouchImageView
         android:id="@+id/itemViewPager_imgPhoto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
