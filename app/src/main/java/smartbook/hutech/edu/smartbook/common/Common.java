@@ -67,4 +67,13 @@ public class Common {
         return listPageModel;
     }
 
+    public static boolean checkBookAvailable(String folderName) {
+        BookInfoModel bookInfoModel = getInfoOfBook(folderName);
+        BookListPageModel listPageModel = getListPageOfBook(folderName);
+        if (bookInfoModel == null || listPageModel == null) {
+            return false;
+        }
+        return true;
+    }
+
 }

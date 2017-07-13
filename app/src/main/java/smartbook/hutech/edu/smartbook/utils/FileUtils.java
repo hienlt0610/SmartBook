@@ -465,4 +465,52 @@ public class FileUtils {
         return String.format(locale, "%.1f %s", bytes / Math.pow(base, exponent), unit);
     }
 
+    /**
+     * Rename file
+     *
+     * @param file    File
+     * @param newName new name
+     * @return {@code true}: true if succes
+     */
+    public static boolean rename(final File file, final String newName) {
+        if (file == null) return false;
+        if (!file.exists()) return false;
+        if (StringUtils.isEmpty(newName)) return false;
+        if (newName.equals(file.getName())) return true;
+        File newFile = new File(file.getParent() + File.separator + newName);
+        return !newFile.exists()
+                && file.renameTo(newFile);
+    }
+
+    public static boolean rename(final String filePath, final String newName) {
+        return rename(getFileByPath(filePath), newName);
+    }
+
+    public static String getFileName(final File file) {
+        if (file == null) return null;
+        return getFileName(file.getPath());
+    }
+
+    public static String getFileName(final String filePath) {
+        if (StringUtils.isEmpty(filePath)) return filePath;
+        int lastSep = filePath.lastIndexOf(File.separator);
+        return lastSep == -1 ? filePath : filePath.substring(lastSep + 1);
+    }
+
+    public static boolean createOrExistsFile(final String filePath) {
+        return createOrExistsFile(getFileByPath(filePath));
+    }
+
+    public static boolean createOrExistsFile(final File file) {
+        if (file == null) return false;
+        // 如果存在，是文件则返回true，是目录则返回false
+        if (file.exists()) return file.isFile();
+        if (!createOrExistsDir(file.getParentFile())) return false;
+        try {
+            return file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

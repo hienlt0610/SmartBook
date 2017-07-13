@@ -288,18 +288,17 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
             Timber.w("Book is null, cannot load activity");
             this.finish();
         }
-        mBook.setBookId(2);
         String bookId = String.valueOf(mBook.getBookId());
         mPathBookResource = Common.getFolderOfBook(bookId);
 
         BookInfoModel bookInfo = Common.getInfoOfBook(bookId);
         BookListPageModel listPage = Common.getListPageOfBook(bookId);
 
-        boolean isBookAvailable = bookInfo != null && listPage != null;
         Timber.d("Resource book: " + mPathBookResource);
-        if (!isBookAvailable) {
+        if (bookInfo == null || listPage == null) {
             Toast.makeText(this, "Không tìm thấy dữ liệu của sách, vui lòng kiểm tra lại, hoặc download mới", Toast.LENGTH_SHORT).show();
             this.finish();
+            return;
         }
 
         for (BookPageModel bookPageModel : listPage) {

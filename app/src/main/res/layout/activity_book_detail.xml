@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -27,12 +27,12 @@
                     android:id="@+id/fragBookDetail_imgBookCover"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="centerCrop" />
+                    android:scaleType="centerCrop"/>
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_book_detail_gradient" />
+                    android:background="@drawable/bg_book_detail_gradient"/>
             </FrameLayout>
 
             <!--Info-->
@@ -49,7 +49,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:textSize="@dimen/text_large"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"/>
 
                 <TextView
                     android:id="@+id/fragBookDetail_tv_capacity"
@@ -72,14 +72,14 @@
                     android:layout_height="wrap_content"
                     android:text="Tóm tắt"
                     android:textSize="@dimen/text_normal"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"/>
 
                 <TextView
                     android:id="@+id/fragBookDetail_tv_description"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
-                    android:textSize="@dimen/text_normal" />
+                    android:textSize="@dimen/text_normal"/>
             </LinearLayout>
 
             <include layout="@layout/view_line"/>
@@ -89,7 +89,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginTop="@dimen/_12dp"
-                android:scrollbars="none" />
+                android:scrollbars="none"/>
 
         </LinearLayout>
 
@@ -102,29 +102,42 @@
         android:layout_alignParentTop="true"
         android:background="@android:color/transparent"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
         android:background="#4D000000"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
 
         <com.dd.CircularProgressButton
-            android:id="@+id/btnWithText"
+            android:id="@+id/act_book_detail_btn_download"
             android:layout_width="@dimen/_200dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_margin="@dimen/_10dp"
             android:textColor="#FFFF"
             android:textSize="@dimen/text_small"
+            android:visibility="gone"
             app:cpb_cornerRadius="@dimen/_20dp"
             app:cpb_selectorIdle="@drawable/selector_idle_state"
-            app:cpb_textComplete="Complete"
-            app:cpb_textError="Error"
-            app:cpb_textIdle="Tải xuống" />
+            app:cpb_textComplete="Hoàn thành"
+            app:cpb_textError="Lỗi"
+            app:cpb_textIdle="Tải xuống"/>
+
+        <Button
+            android:id="@+id/act_book_detail_btn_open"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="0dp"
+            android:padding="@dimen/_10dp"
+            android:layout_margin="@dimen/_10dp"
+            android:text="Mở ngay"
+            android:background="@drawable/bg_book_detail_open_book"
+            android:visibility="visible"/>
     </LinearLayout>
 </RelativeLayout>

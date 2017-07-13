@@ -30,11 +30,17 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activity.BookReaderActivity" />
-        <activity android:name=".ui.activity.TableOfContentActivity" />
-        <activity android:name=".ui.activity.BookDetailActivity" />
+        <activity android:name=".ui.activity.BookReaderActivity"/>
+        <activity android:name=".ui.activity.TableOfContentActivity"/>
+        <activity android:name=".ui.activity.BookDetailActivity"/>
         <activity android:name=".ui.activity.MoreBookActivity"/>
         <activity android:name=".ui.activity.PagePreviewActivity"/>
+
+        <receiver android:name=".receivers.DownloadCompletedReceiver">
+            <intent-filter>
+                <action android:name="filedownloader.intent.action.completed"/>
+            </intent-filter>
+        </receiver>
     </application>
     <meta-data
         android:name="com.google.android.gms.vision.DEPENDENCIES"

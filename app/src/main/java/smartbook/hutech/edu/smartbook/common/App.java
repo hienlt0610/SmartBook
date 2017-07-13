@@ -2,6 +2,7 @@ package smartbook.hutech.edu.smartbook.common;
 
 import android.app.Application;
 
+import com.liulishuo.filedownloader.FileDownloader;
 import com.mikepenz.iconics.Iconics;
 import com.mikepenz.material_design_iconic_typeface_library.MaterialDesignIconic;
 
@@ -30,6 +31,7 @@ public class App extends Application {
         Database db = helper.getWritableDb();
         DaoMaster daoMaster = new DaoMaster(db);
         daoSession = daoMaster.newSession();
+        FileDownloader.setupOnApplicationOnCreate(this);
 //        daoMaster.dropAllTables(db, true);
 //        daoMaster.createAllTables(db, true);
     }
