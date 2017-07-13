@@ -51,11 +51,11 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
     private AnsweredDao mAnsweredDao;
     private File mHightlightImageFile;
 
-    public static PageFragment newInstance(BookPageModel page, String bookId, String bookFolder) {
+    public static PageFragment newInstance(BookPageModel page, int bookId, String bookFolder) {
         Bundle args = new Bundle();
         String jsonPage = new Gson().toJson(page);
         args.putString(EXTRA_PAGE, jsonPage);
-        args.putString(EXTRA_BOOK_ID, bookId);
+        args.putInt(EXTRA_BOOK_ID, bookId);
         args.putString(EXTRA_ROOT_FOLDER, bookFolder);
         PageFragment fragment = new PageFragment();
         fragment.setArguments(args);

@@ -74,6 +74,8 @@ import smartbook.hutech.edu.smartbook.common.view.bookview.HighlightConfigDialog
 import smartbook.hutech.edu.smartbook.common.view.bookview.TranslateView;
 import smartbook.hutech.edu.smartbook.database.Bookmarked;
 import smartbook.hutech.edu.smartbook.database.BookmarkedDao;
+import smartbook.hutech.edu.smartbook.database.Download;
+import smartbook.hutech.edu.smartbook.database.DownloadDao;
 import smartbook.hutech.edu.smartbook.database.LatestPage;
 import smartbook.hutech.edu.smartbook.database.LatestPageDao;
 import smartbook.hutech.edu.smartbook.model.Book;
@@ -260,7 +262,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         }
         mBookDetailPageAdapter = new BookReaderPagerAdapter(getSupportFragmentManager());
         for (BookPageModel page : mBook.getPageList()) {
-            mBookDetailPageAdapter.addPage(PageFragment.newInstance(page, mBook.getBookId() + "",
+            mBookDetailPageAdapter.addPage(PageFragment.newInstance(page, mBook.getBookId(),
                     mPathBookResource.getAbsolutePath()));
         }
         mViewPager.setAdapter(mBookDetailPageAdapter);
@@ -663,7 +665,15 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         LatestPageDao latestPageDao = App.getApp().getDaoSession().getLatestPageDao();
         LatestPage latestPage = new LatestPage(null, mBook.getBookId(), currentPage);
         long data = latestPageDao.insertOrReplace(latestPage);
-        Timber.d(data + "");
+
+        //Save last read time
+        DownloadDao downloadDao = App.getApp().getDaoSession().getDownloadDao();
+        Download existBook = downloadDao.queryBuilder().where(DownloadDao.Properties.Bid.eq(mBook.getBookId())).unique();
+        if (existBook != null) {
+            existBook.setLastRead(System.currentTimeMillis());
+            downloadDao.update(existBook);
+            Timber.d("Update Last read time of bookId = " + mBook.getBookId());
+        }
     }
 
     @Override

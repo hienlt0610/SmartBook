@@ -271,13 +271,13 @@ public class BookShelfFragment extends BaseFragment implements RecyclerArrayAdap
         QueryBuilder<Download> queryBuilder = mDownloadDao.queryBuilder();
         switch (mSortType) {
             case NEWEST:
-                queryBuilder.orderDesc(DownloadDao.Properties.Created);
+                queryBuilder = queryBuilder.orderDesc(DownloadDao.Properties.Created);
                 break;
             case LAST_OPENED:
-                queryBuilder.orderDesc(DownloadDao.Properties.LastRead);
+                queryBuilder = queryBuilder.orderDesc(DownloadDao.Properties.LastRead);
                 break;
             case ALPHABET:
-                queryBuilder.orderDesc(DownloadDao.Properties.Title);
+                queryBuilder = queryBuilder.orderAsc(DownloadDao.Properties.Title);
                 break;
         }
         List<Download> listLocal = queryBuilder.list();
@@ -296,8 +296,8 @@ public class BookShelfFragment extends BaseFragment implements RecyclerArrayAdap
 
     private enum SortType {
         NEWEST("Mới nhất", 0),
-        LAST_OPENED("Mặc định (Theo chữ cái)", 1),
-        ALPHABET("Mới xem", 2);
+        LAST_OPENED("Mới xem", 1),
+        ALPHABET("Theo chữ cái", 2);
         private String text;
         private int value;
 
