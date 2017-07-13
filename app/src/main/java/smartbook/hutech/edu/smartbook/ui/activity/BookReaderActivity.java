@@ -241,9 +241,10 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
 
     private void checkBookMark() {
         BookmarkedDao bookmarkedDao = App.getApp().getDaoSession().getBookmarkedDao();
+        String bookId = String.valueOf(mBook.getBookId());
         int currentPage = mViewPager.getCurrentItem();
         Bookmarked bookmarked = bookmarkedDao.queryBuilder()
-                .where(BookmarkedDao.Properties.Bid.eq(mBook.getBookId()),
+                .where(BookmarkedDao.Properties.Bid.eq(bookId),
                         BookmarkedDao.Properties.Page.eq(currentPage))
                 .unique();
         mIsBookmark = bookmarked != null;
@@ -399,8 +400,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                     Toast.makeText(this, R.string.book_reader_empty_page_error, Toast.LENGTH_SHORT).show();
                     return false;
                 }
-                String bookId = String.valueOf(mBook.getBookId());
-                TableOfContentActivity.start(this, bookId, mBook.getPageList(), REQ_SELECT_PAGE_CODE);
+                TableOfContentActivity.start(this, mBook.getBookId(), mBook.getPageList(), REQ_SELECT_PAGE_CODE);
                 break;
             case MENU_PAGE_INDEX:
                 if (mIsEmptyPage) {

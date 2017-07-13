@@ -1,6 +1,10 @@
 <resources>
     <!--Common-->
     <string name="app_name">SmartBook</string>
+    <string name="dialog_confirm_delete_title">Xóa</string>
+    <string name="dialog_confirm_delete_content">Bạn có muốn xóa?</string>
+    <string name="dialog_confirm_agree">Đồng ý</string>
+    <string name="dialog_confirm_cancle">Hủy</string>
 
     <!--Table of content-->
     <string name="table_of_content_tab_all">Tất cả</string>
@@ -24,4 +28,7 @@
     <string name="book_reader_translate_loading">Đang xử lý, vui lòng chờ</string>
     <string name="book_reader_translate_progress_title">Xử lý nội dung</string>
     <string name="book_detail_file_size">Dung lượng: %1$s</string>
+    <string name="book_shelf_view_detail">Xem chi tiết</string>
+    <string name="book_shelf_delete_book">Xóa</string>
+    <string name="book_shelf_sort_title">Sắp xếp: %1$s</string>
 </resources>

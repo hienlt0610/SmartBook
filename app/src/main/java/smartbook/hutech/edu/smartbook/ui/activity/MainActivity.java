@@ -3,7 +3,11 @@ package smartbook.hutech.edu.smartbook.ui.activity;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.v4.app.Fragment;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.RadioGroup;
+
+import com.miguelcatalan.materialsearchview.MaterialSearchView;
 
 import java.util.HashMap;
 
@@ -21,6 +25,8 @@ public class MainActivity extends BaseActivity implements RadioGroup.OnCheckedCh
 
     @BindView(R.id.act_main_rg_tab)
     RadioGroup mRgTab;
+    @BindView(R.id.search_view)
+    MaterialSearchView mSearchView;
 
     private HashMap<String, Fragment> mMapFragment;
 
@@ -40,7 +46,7 @@ public class MainActivity extends BaseActivity implements RadioGroup.OnCheckedCh
         //Set default tab online
         mRgTab.check(R.id.act_main_rd_online);
         onCheckedChanged(mRgTab, R.id.act_main_rd_online);
-
+        setTitle(null);
     }
 
     private void initFragmentList() {
@@ -67,5 +73,13 @@ public class MainActivity extends BaseActivity implements RadioGroup.OnCheckedCh
                 replaceFragment((BaseFragment) fragment, R.id.actMain_flContainer, false);
                 break;
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        MenuItem item = menu.findItem(R.id.action_search);
+        mSearchView.setMenuItem(item);
+        return true;
     }
 }

@@ -9,35 +9,51 @@
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="?android:attr/actionBarSize"
-        android:background="@color/colorPrimary"
-        android:gravity="center">
+        android:background="@color/colorPrimary">
 
-        <RadioGroup
-            android:id="@+id/act_main_rg_tab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-            <RadioButton
-                android:id="@+id/act_main_rd_online"
-                android:layout_width="80dp"
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:background="@android:color/transparent"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <RadioGroup
+                android:id="@+id/act_main_rg_tab"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_main_tab_border_left"
-                android:button="@null"
-                android:gravity="center"
-                android:padding="5dp"
-                android:text="Trực tuyến"/>
+                android:layout_gravity="center"
+                android:orientation="horizontal">
 
-            <RadioButton
-                android:id="@+id/act_main_rd_offline"
-                android:layout_width="80dp"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_main_tab_border_right"
-                android:button="@null"
-                android:gravity="center"
-                android:padding="5dp"
-                android:text="Tủ sách"/>
-        </RadioGroup>
+                <RadioButton
+                    android:id="@+id/act_main_rd_online"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_main_tab_border_left"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:padding="5dp"
+                    android:text="Trực tuyến"/>
+
+                <RadioButton
+                    android:id="@+id/act_main_rd_offline"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_main_tab_border_right"
+                    android:button="@null"
+                    android:gravity="center"
+                    android:padding="5dp"
+                    android:text="Tủ sách"/>
+            </RadioGroup>
+
+            <com.miguelcatalan.materialsearchview.MaterialSearchView
+                android:id="@+id/search_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </FrameLayout>
 
     </android.support.design.widget.AppBarLayout>
 

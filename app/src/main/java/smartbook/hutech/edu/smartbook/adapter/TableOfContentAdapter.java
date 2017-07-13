@@ -29,9 +29,9 @@ public class TableOfContentAdapter extends RecyclerArrayAdapter<BookPageModel> {
 
     File bookFolder;
 
-    public TableOfContentAdapter(Context context, String bookId, List<BookPageModel> objects) {
+    public TableOfContentAdapter(Context context, int bookId, List<BookPageModel> objects) {
         super(context, objects);
-        bookFolder = Common.getFolderOfBook(bookId);
+        bookFolder = Common.getFolderOfBook(String.valueOf(bookId));
     }
 
     @Override

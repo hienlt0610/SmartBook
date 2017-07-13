@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 import smartbook.hutech.edu.smartbook.common.BaseModel;
+import smartbook.hutech.edu.smartbook.database.Download;
 import smartbook.hutech.edu.smartbook.model.bookviewer.BookListPageModel;
 
 /**
@@ -37,6 +38,17 @@ public class Book extends BaseModel {
     private List<String> mDemoPage;
 
     private BookListPageModel mPageList;
+
+    public Book() {
+    }
+
+    public Book(Download bookDownload) {
+        setTitle(bookDownload.getTitle());
+        setBookId(bookDownload.getBid());
+        setFileSize(bookDownload.getTotalSize());
+        setAuthor(bookDownload.getAuthor());
+        setDescription(bookDownload.getDescription());
+    }
 
     public String getTitle() {
         return mTitle;

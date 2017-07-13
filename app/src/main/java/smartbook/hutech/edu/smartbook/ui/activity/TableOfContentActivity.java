@@ -40,14 +40,14 @@ public class TableOfContentActivity extends BaseActivity implements TabLayout.On
     TabLayout mTabLayout;
     @BindView(R.id.activityTableOfContent_recycler_view)
     EasyRecyclerView mRvPage;
-    private String mBookId;
+    private int mBookId;
     private BookListPageModel mPageList;
 
     private TableOfContentAdapter mTableOfContentAdapter;
     private List<BookPageModel> mListBookmark;
     private boolean mIsShowAll = true;
 
-    public static void start(Activity activity, String bookId, BookListPageModel listPage, int requestCode) {
+    public static void start(Activity activity, int bookId, BookListPageModel listPage, int requestCode) {
         Intent starter = new Intent(activity, TableOfContentActivity.class);
         starter.putExtra(EXTRA_BOOK_ID, bookId);
         String jsonListPage = new Gson().toJson(listPage);
@@ -91,7 +91,7 @@ public class TableOfContentActivity extends BaseActivity implements TabLayout.On
 
     private void initCommonData() {
         Intent intent = getIntent();
-        mBookId = intent.getStringExtra(EXTRA_BOOK_ID);
+        mBookId = intent.getIntExtra(EXTRA_BOOK_ID, 0);
         String jsonPageList = intent.getStringExtra(EXTRA_PAGE_LIST);
         if (StringUtils.isNotEmpty(jsonPageList)) {
             mPageList = new Gson().fromJson(jsonPageList, BookListPageModel.class);

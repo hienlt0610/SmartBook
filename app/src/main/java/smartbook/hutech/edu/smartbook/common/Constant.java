@@ -15,6 +15,7 @@ public class Constant {
     public static final String HIGHLIGHT_FOLDER_NAME = "pagehighlight";
     public static final String BOOK_INFO_FILE_NAME = "info.json";
     public static final String BOOK_ITEMS_FILE_NAME = "items.json";
+    public static final String COVER_FILE_NAME = "cover.jpg";
 
     public static final String INPUT_TYPE = "input";
     public static final String AUDIO_TYPE = "audio";
