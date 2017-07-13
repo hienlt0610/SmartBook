@@ -241,10 +241,9 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
 
     private void checkBookMark() {
         BookmarkedDao bookmarkedDao = App.getApp().getDaoSession().getBookmarkedDao();
-        String bookId = String.valueOf(mBook.getBookId());
         int currentPage = mViewPager.getCurrentItem();
         Bookmarked bookmarked = bookmarkedDao.queryBuilder()
-                .where(BookmarkedDao.Properties.Bid.eq(bookId),
+                .where(BookmarkedDao.Properties.Bid.eq(mBook.getBookId()),
                         BookmarkedDao.Properties.Page.eq(currentPage))
                 .unique();
         mIsBookmark = bookmarked != null;
@@ -424,18 +423,17 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                 break;
             case MENU_PAGE_BOOKMARK:
                 BookmarkedDao bookmarkedDao = App.getApp().getDaoSession().getBookmarkedDao();
-                bookId = String.valueOf(mBook.getBookId());
                 int currentPage = mViewPager.getCurrentItem();
 
                 Bookmarked bookmarked = bookmarkedDao.queryBuilder()
-                        .where(BookmarkedDao.Properties.Bid.eq(bookId),
+                        .where(BookmarkedDao.Properties.Bid.eq(mBook.getBookId()),
                                 BookmarkedDao.Properties.Page.eq(currentPage))
                         .unique();
                 if (bookmarked != null) {
                     bookmarkedDao.delete(bookmarked);
                     mIsBookmark = false;
                 } else {
-                    bookmarked = new Bookmarked(null, bookId, currentPage);
+                    bookmarked = new Bookmarked(null, mBook.getBookId(), currentPage);
                     bookmarkedDao.insert(bookmarked);
                     mIsBookmark = true;
                 }
@@ -661,10 +659,9 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
             }
         }
         //Save last page
-        String bookId = String.valueOf(mBook.getBookId());
         int currentPage = mViewPager.getCurrentItem();
         LatestPageDao latestPageDao = App.getApp().getDaoSession().getLatestPageDao();
-        LatestPage latestPage = new LatestPage(null, bookId, currentPage);
+        LatestPage latestPage = new LatestPage(null, mBook.getBookId(), currentPage);
         long data = latestPageDao.insertOrReplace(latestPage);
         Timber.d(data + "");
     }

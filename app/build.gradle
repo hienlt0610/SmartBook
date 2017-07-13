@@ -23,6 +23,7 @@ android {
 
 greendao {
     targetGenDir 'src/main/java'
+    schemaVersion 3
 }
 
 
@@ -60,4 +61,5 @@ dependencies {
     compile 'com.github.dmytrodanylyk.circular-progress-button:library:1.1.3'
     compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.liulishuo.filedownloader:library:1.6.0'
+    compile 'com.miguelcatalan:materialsearchview:1.4.0'
 }

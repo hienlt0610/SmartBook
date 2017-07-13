@@ -47,7 +47,7 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
     BookImageView mBookImageView;
     private BookPageModel mPage;
     private String mBookFolder;
-    private String mBookId;
+    private int mBookId;
     private AnsweredDao mAnsweredDao;
     private File mHightlightImageFile;
 
@@ -85,7 +85,7 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
 
         boolean hasBookInfo = bundle != null && bundle.containsKey(EXTRA_BOOK_ID);
         if (hasBookInfo) {
-            mBookId = bundle.getString(EXTRA_BOOK_ID);
+            mBookId = bundle.getInt(EXTRA_BOOK_ID, -1);
         }
 
         //Init dao
@@ -104,7 +104,7 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
     }
 
     private void loadListAnswer() {
-        if (mBookId != null && mPage != null) {
+        if (mBookId != -1 && mPage != null) {
             String bookId = String.valueOf(mBookId);
             List<Answered> listAnswer = mAnsweredDao.queryBuilder().where(AnsweredDao.Properties.Bid.eq(bookId),
                     AnsweredDao.Properties.Page.eq(mPage.getPageIndex())).list();
@@ -185,7 +185,7 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
                     @Override
                     public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
                         mBookImageView.setItemResult(input.toString(), position);
-                        if (mBookId != null) {
+                        if (mBookId != -1) {
                             Answered answered = new Answered(null, mBookId, mPage.getPageIndex(), position, input.toString());
                             mAnsweredDao.insertOrReplace(answered);
                         }
@@ -217,9 +217,8 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
                     @Override
                     public void onSelection(MaterialDialog dialog, View itemView, int pos, CharSequence text) {
                         mBookImageView.setItemResult(text.toString(), position);
-                        if (mBookId != null) {
-                            String bookId = String.valueOf(mBookId);
-                            Answered answered = new Answered(null, bookId, mPage.getPageIndex(),
+                        if (mBookId != -1) {
+                            Answered answered = new Answered(null, mBookId, mPage.getPageIndex(),
                                     position, text.toString());
                             mAnsweredDao.insertOrReplace(answered);
                         }

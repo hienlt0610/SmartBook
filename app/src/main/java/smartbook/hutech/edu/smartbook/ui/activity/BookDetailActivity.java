@@ -33,12 +33,15 @@ import permissions.dispatcher.NeedsPermission;
 import permissions.dispatcher.RuntimePermissions;
 import smartbook.hutech.edu.smartbook.R;
 import smartbook.hutech.edu.smartbook.adapter.ImageDemoAdapter;
+import smartbook.hutech.edu.smartbook.common.App;
 import smartbook.hutech.edu.smartbook.common.BaseActivity;
 import smartbook.hutech.edu.smartbook.common.Common;
 import smartbook.hutech.edu.smartbook.common.Constant;
 import smartbook.hutech.edu.smartbook.common.DownloadManager;
 import smartbook.hutech.edu.smartbook.common.helper.ResizableViewHelper;
 import smartbook.hutech.edu.smartbook.common.helper.StartSnapHelper;
+import smartbook.hutech.edu.smartbook.database.Download;
+import smartbook.hutech.edu.smartbook.database.DownloadDao;
 import smartbook.hutech.edu.smartbook.model.Book;
 import smartbook.hutech.edu.smartbook.utils.FileUtils;
 
@@ -62,6 +65,7 @@ public class BookDetailActivity extends BaseActivity implements RecyclerArrayAda
     private String mTagName;
 
     private boolean mIsAvailable;
+    private DownloadDao mDownloadDao;
 
     Book bookModel;
     ImageDemoAdapter adapter;
@@ -74,6 +78,7 @@ public class BookDetailActivity extends BaseActivity implements RecyclerArrayAda
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mDownloadDao = App.getApp().getDaoSession().getDownloadDao();
         getBundle();
         BookDetailActivityPermissionsDispatcher.initializeWithCheck(this);
     }
@@ -111,8 +116,10 @@ public class BookDetailActivity extends BaseActivity implements RecyclerArrayAda
     }
 
     private void initDownloadButton() {
+        //Check book is exist in database and storage
+        Download download = mDownloadDao.queryBuilder().where(DownloadDao.Properties.Bid.eq(bookModel.getBookId())).unique();
         boolean isBookAvailable = Common.checkBookAvailable(String.valueOf(bookModel.getBookId()));
-        if (isBookAvailable) {
+        if (isBookAvailable && download != null) {
             mIsAvailable = true;
             mBtnDownload.setVisibility(View.GONE);
             mBtnOpenBook.setVisibility(View.VISIBLE);
@@ -184,6 +191,17 @@ public class BookDetailActivity extends BaseActivity implements RecyclerArrayAda
         DownloadManager.getImpl()
                 .startDownload(bookModel.getDownload(),
                         bookFile.getAbsolutePath(), false, "download_book_" + bookModel.getBookId());
+        //Save book info into database
+        DownloadDao downloadDao = App.getApp().getDaoSession().getDownloadDao();
+        Download download = new Download(null,
+                bookModel.getBookId(),
+                bookModel.getTitle(),
+                bookModel.getAuthor(),
+                bookModel.getDescription(),
+                bookModel.getFileSize(),
+                System.currentTimeMillis(),
+                System.currentTimeMillis());
+        downloadDao.insertOrReplace(download);
     }
 
     @OnClick(R.id.act_book_detail_btn_open)
