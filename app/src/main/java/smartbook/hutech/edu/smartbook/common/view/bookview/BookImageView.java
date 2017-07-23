@@ -33,6 +33,8 @@ import smartbook.hutech.edu.smartbook.model.bookviewer.CoordinateModel;
 import smartbook.hutech.edu.smartbook.utils.BitmapUtils;
 import smartbook.hutech.edu.smartbook.utils.StringUtils;
 
+import static android.R.attr.textSize;
+
 /**
  * Created by hienl on 6/24/2017.
  */
@@ -58,9 +60,11 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
     private Paint mCornerPaint;
     private Paint mFieldBgPaint;
     private Paint mTextPaint;
+    private Paint mIncorrectLine;
 
     private int mCornerWidth = 7;
     private int mCornerRound = 10;
+    private int mIncorrectLineWidth = 7;
     private int mTextSize = 55;
     private float mScale;
     private SparseArray<String> mAnswers;
@@ -121,6 +125,11 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
         mTextPaint.setColor(Color.BLACK);
         mTextPaint.setAntiAlias(true);
 
+        mIncorrectLine = new Paint();
+        mIncorrectLine.setColor(Color.BLACK);
+        mIncorrectLine.setAntiAlias(true);
+        mIncorrectLine.setStyle(Paint.Style.STROKE);
+
         /* Set the options */
         BitmapFactory.Options opts = new BitmapFactory.Options();
         opts.inDither = true;
@@ -174,7 +183,7 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                if (mBrushType == BrushType.NONE) {
+                if (mBrushType == BrushType.NONE || mBrushType == BrushType.SHOW_RESULT) {
                     //Remove focus
                     mItemFocus = -1;
                     invalidate();
@@ -229,6 +238,65 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
         }
         onDrawHighlight(canvas);
         onEarseHighlight();
+        onDrawShowResult(canvas);
+    }
+
+    private void onDrawShowResult(Canvas canvas) {
+        if (!isShowResultMode()) {
+            return;
+        }
+        for (int i = 0; i < mRectList.size(); i++) {
+            Rect rect = mRectList.get(i);
+            BookItemModel item = mListBookItem.get(i);
+            List<String> correctAnswers = item.getCorrect();
+            PointF from = pointFromBitmapPixel(rect.left, rect.top);
+            PointF to = pointFromBitmapPixel(rect.right, rect.bottom);
+            String answer = mAnswers.get(i);
+            boolean hasCorrectAnswer = correctAnswers.size() > 0;
+            boolean hasAnswered = StringUtils.isNotEmpty(mAnswers.get(i));
+            if (hasCorrectAnswer && hasAnswered) {
+                int strokeWidth = (int) (mCornerWidth * mScale);
+                int cornerRound = (int) (mCornerRound * mScale);
+                mCornerPaint.setStrokeWidth(strokeWidth);
+                RectF rectF = new RectF(from.x, from.y, to.x, to.y);
+                mFieldBgPaint.setStyle(Paint.Style.STROKE);
+                mCornerPaint.setStyle(Paint.Style.STROKE);
+                if (!correctAnswers.contains(answer)) {
+                    mCornerPaint.setColor(Color.RED);
+                    float textX = 0;
+                    float textY = 0;
+
+                    //draw line across incorrect answer
+                    Rect bound = new Rect();
+                    switch (item.getItemType()) {
+                        case Constant.INPUT_TYPE:
+                            mTextPaint.setTextSize(textSize);
+                            mTextPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
+                            mTextPaint.getTextBounds(answer, 0, answer.length(), bound);
+                            textX = from.x + 10 * mScale;
+                            textY = from.y + bound.height() + ((rectF.height() - bound.height()) / 2);
+                            textY = textY - (bound.height() / 2);
+                            break;
+                        case Constant.SELECT_TYPE:
+                            mTextPaint.setTextSize(textSize);
+                            mTextPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+                            mTextPaint.getTextBounds(answer, 0, answer.length(), bound);
+
+                            textX = from.x + ((rectF.width() - bound.width()) / 2);
+                            textY = from.y + bound.height() + ((rectF.height() - bound.height()) / 2);
+                            textY = textY - (bound.height() / 2);
+                            break;
+                    }
+                    mIncorrectLine.setStrokeWidth(mIncorrectLineWidth * mScale);
+                    canvas.drawLine(from.x, textY, to.x, textY, mIncorrectLine);
+                } else {
+                    mCornerPaint.setColor(Color.GREEN);
+                }
+                //Draw line area
+                canvas.drawRoundRect(rectF, cornerRound, cornerRound, mFieldBgPaint);
+                canvas.drawRoundRect(rectF, cornerRound, cornerRound, mCornerPaint);
+            }
+        }
     }
 
     private void onEarseHighlight() {
@@ -299,6 +367,7 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
         int strokeWidth = (int) (mCornerWidth * mScale);
         int cornerRound = (int) (mCornerRound * mScale);
         mCornerPaint.setStrokeWidth(strokeWidth);
+        mFieldBgPaint.setStyle(Paint.Style.FILL);
 
         int cornerColor;
         if (mItemFocus == position) {
@@ -352,6 +421,7 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
         int strokeWidth = (int) (mCornerWidth * mScale);
         int cornerRound = (int) (mCornerRound * mScale);
         mCornerPaint.setStrokeWidth(strokeWidth);
+        mFieldBgPaint.setStyle(Paint.Style.FILL);
 
         int cornerColor;
         if (mItemFocus == position) {
@@ -410,7 +480,8 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
 
     public void setBrushType(BrushType brushType) {
         mBrushType = brushType;
-        isEnable = (brushType == BrushType.NONE);
+        isEnable = (brushType == BrushType.NONE || brushType == BrushType.SHOW_RESULT);
+        invalidate();
     }
 
     public boolean isHighlightMode() {
@@ -419,6 +490,10 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
 
     public boolean isEarseMode() {
         return mBrushType == BrushType.EARSE;
+    }
+
+    public boolean isShowResultMode() {
+        return mBrushType == BrushType.SHOW_RESULT;
     }
 
     public HighlightConfig getHighlightConfig() {
@@ -560,7 +635,7 @@ public class BookImageView extends TouchImageView implements IBookViewAction {
     }
 
     public enum BrushType {
-        HIGHLIGHT, EARSE, NONE
+        HIGHLIGHT, EARSE, SHOW_RESULT, NONE
     }
 
     public Bitmap getBitmap() {

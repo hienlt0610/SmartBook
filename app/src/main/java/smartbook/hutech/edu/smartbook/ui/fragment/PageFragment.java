@@ -7,7 +7,9 @@ import android.support.annotation.Nullable;
 import android.text.InputType;
 import android.util.SparseArray;
 import android.view.View;
+import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
@@ -16,6 +18,7 @@ import com.bumptech.glide.signature.StringSignature;
 import com.google.gson.Gson;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -178,19 +181,42 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
     @Override
     public void onInputClick(final int position) {
         String answer = mBookImageView.getItemResult(position);
-        new MaterialDialog.Builder(getActivity())
-                .title("Nhập câu trả lời")
-                .inputType(InputType.TYPE_CLASS_TEXT)
-                .input(null, answer, true, new MaterialDialog.InputCallback() {
-                    @Override
-                    public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
-                        mBookImageView.setItemResult(input.toString(), position);
-                        if (mBookId != -1) {
-                            Answered answered = new Answered(null, mBookId, mPage.getPageIndex(), position, input.toString());
-                            mAnsweredDao.insertOrReplace(answered);
+        if (!mBookImageView.isShowResultMode()) {
+            new MaterialDialog.Builder(getActivity())
+                    .title("Nhập câu trả lời")
+                    .inputType(InputType.TYPE_CLASS_TEXT)
+                    .input(null, answer, true, new MaterialDialog.InputCallback() {
+                        @Override
+                        public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
+                            mBookImageView.setItemResult(input.toString(), position);
+                            if (mBookId != -1) {
+                                Answered answered = new Answered(null, mBookId, mPage.getPageIndex(), position, input.toString());
+                                mAnsweredDao.insertOrReplace(answered);
+                            }
                         }
-                    }
-                }).show();
+                    }).show();
+        } else if (mBookImageView.isShowResultMode() && StringUtils.isNotEmpty(answer)) {
+            List<String> corrects = mPage.getItems().get(position).getCorrect();
+            if (corrects.size() == 0) {
+                Toast.makeText(getActivity(), "Không có kết quả đúng", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            List<String> item = new ArrayList<>();
+            item.addAll(corrects);
+            new MaterialDialog.Builder(getActivity())
+                    .title("Xem kết quả")
+                    .content("Câu trả lời đúng:")
+                    .items(item)
+                    .positiveText(R.string.dialog_confirm_agree)
+                    .autoDismiss(false)
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
+        }
     }
 
     @Override
@@ -210,20 +236,47 @@ public class PageFragment extends BaseFragment implements IBookViewAction {
     @Override
     public void onSelectBoxClick(final int position) {
         BookItemModel item = mPage.getItems().get(position);
-        new MaterialDialog.Builder(getActivity())
-                .title("Chọn câu trả lời đúng")
-                .items(item.getData())
-                .itemsCallback(new MaterialDialog.ListCallback() {
-                    @Override
-                    public void onSelection(MaterialDialog dialog, View itemView, int pos, CharSequence text) {
-                        mBookImageView.setItemResult(text.toString(), position);
-                        if (mBookId != -1) {
-                            Answered answered = new Answered(null, mBookId, mPage.getPageIndex(),
-                                    position, text.toString());
-                            mAnsweredDao.insertOrReplace(answered);
+        String answer = mBookImageView.getItemResult(position);
+        if (!mBookImageView.isShowResultMode()) {
+            new MaterialDialog.Builder(getActivity())
+                    .title("Chọn câu trả lời đúng")
+                    .items(item.getData())
+                    .itemsCallback(new MaterialDialog.ListCallback() {
+                        @Override
+                        public void onSelection(MaterialDialog dialog, View itemView, int pos, CharSequence text) {
+                            mBookImageView.setItemResult(text.toString(), position);
+                            if (mBookId != -1) {
+                                Answered answered = new Answered(null, mBookId, mPage.getPageIndex(),
+                                        position, text.toString());
+                                mAnsweredDao.insertOrReplace(answered);
+                            }
                         }
-                    }
-                }).show();
+                    }).show();
+        } else {
+            if (mBookImageView.isShowResultMode() && StringUtils.isNotEmpty(answer)) {
+                List<String> corrects = item.getCorrect();
+                if (corrects.size() == 0) {
+                    Toast.makeText(getActivity(), "Không có kết quả đúng", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                List<String> items = new ArrayList<>();
+                items.addAll(mPage.getItems().get(position).getCorrect());
+                new MaterialDialog.Builder(getActivity())
+                        .title("Xem kết quả")
+                        .content("Câu trả lời đúng:")
+                        .items(items)
+                        .positiveText(R.string.dialog_confirm_agree)
+                        .autoDismiss(false)
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+            }
+        }
+
     }
 
     @Override

@@ -124,11 +124,14 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     FloatingActionButton mFabPlayPause;
     @BindView(R.id.activityBookViewer_translate_view)
     TranslateView mTranslateView;
+    @BindView(R.id.activityBookViewer_btn_acion_show_result)
+    Button mBtnShowResult;
 
     private Book mBook;
 
     private BookInfoModel mBookInfo;
     File mPathBookResource;
+    int mPreviousPagePosition = 0;
 
     private BookReaderPagerAdapter mBookDetailPageAdapter;
     private boolean mIsBookmark;
@@ -272,6 +275,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                 .unique();
         if (latestPage != null) {
             mViewPager.setCurrentItem(latestPage.getPage());
+            mPreviousPagePosition = latestPage.getPage();
         }
         //Init listener
         mViewPager.addOnPageChangeListener(this);
@@ -333,12 +337,17 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         } else {
             setPlaying(-1);
         }
+        PageFragment fragment = (PageFragment) mBookDetailPageAdapter.getItem(mPreviousPagePosition);
+        if (fragment != null && fragment.getBookImageView().isShowResultMode()) {
+            fragment.getBookImageView().setBrushType(BookImageView.BrushType.NONE);
+            mBtnShowResult.setTextColor(Color.WHITE);
+        }
+        mPreviousPagePosition = position;
     }
 
 
     @Override
     public void onPageScrollStateChanged(int state) {
-
     }
 
     @Override
@@ -518,6 +527,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     @OnClick(R.id.activityBookViewer_btn_action_highlight)
     void onActionHighLightClick(View view) {
         mIsTranslateMode = false;
+        showTranslate(mIsTranslateMode);
         PageFragment pageFragment = getFocusPageFragment();
         if (pageFragment != null) {
             BookImageView bookImageView = pageFragment.getBookImageView();
@@ -525,6 +535,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                 //Disable Earse mode if it available
                 mBtnActionEarse.setTextColor(Color.WHITE);
                 mBtnActionTranslate.setTextColor(Color.WHITE);
+                mBtnShowResult.setTextColor(Color.WHITE);
                 //Enable or disable highlight mode
                 if (bookImageView.isHighlightMode()) {
                     mBtnActionHighlight.setTextColor(ContextCompat.getColor(this, R.color.material_color_white));
@@ -559,6 +570,8 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
             dialog.setDefaultConfig(config);
         }
         dialog.show();
+        mIsTranslateMode = false;
+        showTranslate(mIsTranslateMode);
         return true;
     }
 
@@ -570,6 +583,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
     @OnClick(R.id.activityBookViewer_btn_acion_clear)
     void onActionClearClick(View view) {
         mIsTranslateMode = false;
+        showTranslate(mIsTranslateMode);
         PageFragment pageFragment = getFocusPageFragment();
         if (pageFragment != null) {
             BookImageView bookImageView = pageFragment.getBookImageView();
@@ -578,6 +592,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                 //Disable Highlight mode if it available
                 mBtnActionHighlight.setTextColor(Color.WHITE);
                 mBtnActionTranslate.setTextColor(Color.WHITE);
+                mBtnShowResult.setTextColor(Color.WHITE);
 
                 //Enable or disable earse mode
                 if (bookImageView.isEarseMode()) {
@@ -611,6 +626,8 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                         }
                     }
                 }).show();
+        mIsTranslateMode = false;
+        showTranslate(mIsTranslateMode);
         return true;
     }
 
@@ -621,7 +638,23 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
      */
     @OnClick(R.id.activityBookViewer_btn_acion_show_result)
     void onActionShowResultClick(View view) {
-        Toast.makeText(this, "Show result", Toast.LENGTH_SHORT).show();
+        mBtnActionHighlight.setTextColor(Color.WHITE);
+        mBtnActionEarse.setTextColor(Color.WHITE);
+        mBtnActionTranslate.setTextColor(Color.WHITE);
+        PageFragment focusPageFragment = getFocusPageFragment();
+        if (focusPageFragment != null) {
+            boolean isShowResultMode = focusPageFragment.getBookImageView().getBrushType() == BookImageView.BrushType.SHOW_RESULT;
+            if (!isShowResultMode) {
+                focusPageFragment.getBookImageView().setBrushType(BookImageView.BrushType.SHOW_RESULT);
+                mBtnShowResult.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
+            } else {
+                focusPageFragment.getBookImageView().setBrushType(BookImageView.BrushType.NONE);
+                mBtnShowResult.setTextColor(ContextCompat.getColor(this, R.color.material_color_white));
+            }
+        }
+        mViewPager.setTouchesAllowed(true);
+        mIsTranslateMode = false;
+        showTranslate(mIsTranslateMode);
     }
 
     /**
@@ -901,6 +934,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
         mBtnActionHighlight.setTextColor(Color.WHITE);
         mBtnActionEarse.setTextColor(Color.WHITE);
         mBtnActionTranslate.setTextColor(Color.WHITE);
+        mBtnShowResult.setTextColor(Color.WHITE);
         //Default hide translate view
         mTranslateView.setVisibility(View.GONE);
         if (mIsTranslateMode) {
@@ -909,7 +943,7 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                 pageFragment.getBookImageView().setBrushType(BookImageView.BrushType.NONE);
                 Bitmap bitmap = pageFragment.getBookImageView().getBitmap();
                 mTranslateView.setImageBitmap(bitmap);
-                mTranslateView.setVisibility(mIsTranslateMode ? View.VISIBLE : View.GONE);
+                showTranslate(mIsTranslateMode);
                 recognitionText(bitmap);
             }
             //Set selected button
@@ -982,5 +1016,9 @@ public class BookReaderActivity extends BaseActivity implements ViewPager.OnPage
                         mMaterialDialog.cancel();
                     }
                 });
+    }
+
+    private void showTranslate(boolean isShow) {
+        mTranslateView.setVisibility(isShow ? View.VISIBLE : View.GONE);
     }
 }
