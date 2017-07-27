@@ -1,10 +1,11 @@
 package smartbook.hutech.edu.smartbook.database;
 
 import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.Index;
 import org.greenrobot.greendao.annotation.Property;
-import org.greenrobot.greendao.annotation.Generated;
+import org.greenrobot.greendao.annotation.Transient;
 
 /**
  * Created by hienl on 7/13/2017.
@@ -31,6 +32,8 @@ public class Download {
     private long created;
     @Property
     private long lastRead;
+    @Transient
+    private String imgPath;
 @Generated(hash = 470094925)
 public Download(Long id, int bid, String title, String author,
         String description, long totalSize, long created, long lastRead) {
@@ -95,4 +98,12 @@ public void setLastRead(long lastRead) {
     this.lastRead = lastRead;
 }
 
+    public String getImgPath() {
+        return imgPath;
+    }
+
+    public void setImgPath(String imgPath) {
+        this.imgPath = imgPath;
+    }
 }
+

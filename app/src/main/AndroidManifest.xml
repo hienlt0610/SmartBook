@@ -35,6 +35,7 @@
         <activity android:name=".ui.activity.BookDetailActivity"/>
         <activity android:name=".ui.activity.MoreBookActivity"/>
         <activity android:name=".ui.activity.PagePreviewActivity"/>
+        <activity android:name=".ui.activity.SearchActivity"/>
 
         <receiver android:name=".receivers.DownloadCompletedReceiver">
             <intent-filter>

@@ -15,7 +15,6 @@ import smartbook.hutech.edu.smartbook.R;
 import smartbook.hutech.edu.smartbook.adapter.CategoryAdapter;
 import smartbook.hutech.edu.smartbook.common.BaseFragment;
 import smartbook.hutech.edu.smartbook.common.BaseModel;
-import smartbook.hutech.edu.smartbook.common.Constant;
 import smartbook.hutech.edu.smartbook.common.interfaces.BookListener;
 import smartbook.hutech.edu.smartbook.model.Book;
 import smartbook.hutech.edu.smartbook.model.Category;
@@ -79,10 +78,7 @@ public class StoreFragment extends BaseFragment implements BookListener {
     @Override
     public void onBookItemClick(int categoryPos, int bookPos) {
         Book book = mCategoryAdapter.getBook(categoryPos, bookPos);
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(Constant.BOOK,book);
-        Intent intent = new Intent(getActivity(), BookDetailActivity.class);
-        intent.putExtras(bundle);
+        Intent intent = BookDetailActivity.newIntent(getActivity(), book.getBookId());
         startActivity(intent);
     }
 

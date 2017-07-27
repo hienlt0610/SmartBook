@@ -29,8 +29,10 @@ import smartbook.hutech.edu.smartbook.adapter.LocalBookAdapter;
 import smartbook.hutech.edu.smartbook.common.App;
 import smartbook.hutech.edu.smartbook.common.BaseFragment;
 import smartbook.hutech.edu.smartbook.common.Common;
+import smartbook.hutech.edu.smartbook.database.DaoSession;
 import smartbook.hutech.edu.smartbook.database.Download;
 import smartbook.hutech.edu.smartbook.database.DownloadDao;
+import smartbook.hutech.edu.smartbook.database.MyRepository;
 import smartbook.hutech.edu.smartbook.model.Book;
 import smartbook.hutech.edu.smartbook.ui.activity.BookReaderActivity;
 import smartbook.hutech.edu.smartbook.utils.FileUtils;
@@ -167,6 +169,11 @@ public class BookShelfFragment extends BaseFragment implements RecyclerArrayAdap
                         FileUtils.deleteDir(Common.getFolderOfBook(String.valueOf(download.getBid())));
                         Timber.d("Delete folder with bookId = " + download.getBid() + " from Storage");
                         ((LocalBookAdapter) mRvBook.getAdapter()).remove(bookPos);
+                        DaoSession daoSession = App.getApp().getDaoSession();
+                        //Delete all bookmark
+                        MyRepository.deleteBookmart(download.getBid());
+                        MyRepository.deleteAnswer(download.getBid());
+                        MyRepository.deleteLatestPage(download.getBid());
                     }
                 })
                 .show();

@@ -33,9 +33,11 @@ public class DownloadManager {
     public void startDownload(final String url, final String path, boolean isParent, String tag) {
         int downloadId = FileDownloader.getImpl().create(url)
                 .setPath(path, isParent)
-                .setListener(lis)
                 .setTag(tag)
-                .start();
+                .setListener(lis)
+                .asInQueueTask()
+                .enqueue();
+        FileDownloader.getImpl().start(lis, true);
     }
 
     public void addUpdater(final DownloadStatusUpdater updater) {

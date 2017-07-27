@@ -33,6 +33,11 @@ public class LocalBookAdapter extends RecyclerArrayAdapter<Download> {
 
     public LocalBookAdapter(Context context, TypeShow typeShow) {
         super(context);
+        mTypeShow = typeShow;
+    }
+
+    public LocalBookAdapter(Context context) {
+        this(context, TypeShow.List);
     }
 
     @Override
@@ -100,15 +105,25 @@ public class LocalBookAdapter extends RecyclerArrayAdapter<Download> {
             mTvTitle.setText(title);
             //Set image
             Glide.clear(mImvBook);
+            String imgPath = null;
+            if (StringUtils.isNotEmpty(data.getImgPath())) {
+                imgPath = data.getImgPath();
+            } else {
+                if (getCoverPath(data.getBid()) != null) {
+                    imgPath = getCoverPath(data.getBid()).getAbsolutePath();
+                }
+
+            }
             Glide.with(getContext())
-                    .load(getCoverPath(data.getBid()))
+                    .load(imgPath)
                     .placeholder(R.drawable.default_book)
                     .fitCenter()
                     .into(mImvBook);
             //Set author
             mTvAuthor.setText("Tác giả: " + data.getAuthor());
             //Set description
-            mTvDescription.setText(data.getDescription());
+            String description = StringUtils.substring(data.getDescription(), 0, 100);
+            mTvDescription.setText(description);
         }
     }
 

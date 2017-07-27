@@ -4,6 +4,8 @@ package smartbook.hutech.edu.smartbook.ui.activity;
  */
 
 import android.Manifest;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,18 +38,21 @@ import smartbook.hutech.edu.smartbook.R;
 import smartbook.hutech.edu.smartbook.adapter.ImageDemoAdapter;
 import smartbook.hutech.edu.smartbook.common.App;
 import smartbook.hutech.edu.smartbook.common.BaseActivity;
+import smartbook.hutech.edu.smartbook.common.BaseModel;
 import smartbook.hutech.edu.smartbook.common.Common;
-import smartbook.hutech.edu.smartbook.common.Constant;
 import smartbook.hutech.edu.smartbook.common.DownloadManager;
 import smartbook.hutech.edu.smartbook.common.helper.ResizableViewHelper;
 import smartbook.hutech.edu.smartbook.common.helper.StartSnapHelper;
 import smartbook.hutech.edu.smartbook.database.Download;
 import smartbook.hutech.edu.smartbook.database.DownloadDao;
 import smartbook.hutech.edu.smartbook.model.Book;
+import smartbook.hutech.edu.smartbook.model.BookResponse;
 import smartbook.hutech.edu.smartbook.utils.FileUtils;
 
 @RuntimePermissions
 public class BookDetailActivity extends BaseActivity implements RecyclerArrayAdapter.OnItemClickListener, DownloadManager.DownloadStatusUpdater {
+
+    private static final String EXTRA_BOOK_ID = "EXTRA_BOOK_ID";
 
     @BindView(R.id.fragBookDetail_imgBookCover)
     ImageView imgBookCover;
@@ -64,12 +69,20 @@ public class BookDetailActivity extends BaseActivity implements RecyclerArrayAda
     @BindView(R.id.act_book_detail_btn_open)
     Button mBtnOpenBook;
     private String mTagName;
+    private int mBookId;
+    private ProgressDialog mProgressDialog;
 
     private boolean mIsAvailable;
     private DownloadDao mDownloadDao;
 
     Book bookModel;
     ImageDemoAdapter adapter;
+
+    public static Intent newIntent(Context context, int bookId) {
+        Intent intent = new Intent(context, BookDetailActivity.class);
+        intent.putExtra(EXTRA_BOOK_ID, bookId);
+        return intent;
+    }
 
     @Override
     protected int getResId() {
@@ -80,40 +93,23 @@ public class BookDetailActivity extends BaseActivity implements RecyclerArrayAda
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mDownloadDao = App.getApp().getDaoSession().getDownloadDao();
+        initProgressDialog();
         getBundle();
         BookDetailActivityPermissionsDispatcher.initializeWithCheck(this);
     }
 
+    private void initProgressDialog() {
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setTitle("Đang tải");
+        mProgressDialog.setMessage("Đang lấy thông tin sách, vui lòng chờ");
+    }
+
     @NeedsPermission(value = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE})
     void initialize() {
-        //Init download button
-        initDownloadButton();
         //Init toolbar
         showHomeIcon(true);
         setTitle(null);
-        //Load cover image
-        Glide.with(this).load(bookModel.getCover()).into(imgBookCover);
-        //Init description
-        mTvDescription.setText(bookModel.getDescription());
-        ResizableViewHelper.doResizeTextView(mTvDescription, 3, "Xem thêm", true);
-        //Init file size
-        String strFileSize = FileUtils.humanReadableByteCount(bookModel.getFileSize(), true, Locale.US);
-        tvCapacity.setText(getString(R.string.book_detail_file_size, strFileSize));
-        //Init title
-        tvBookName.setText(bookModel.getTitle());
-        adapter = new ImageDemoAdapter(this);
-        adapter.addAll(bookModel.getmDemoPage());
-        //Init recyclerview
-        SnapHelper startSnapHelper = new StartSnapHelper();
-        startSnapHelper.attachToRecyclerView(rvImageDemo.getRecyclerView());
-        rvImageDemo.getRecyclerView().setHorizontalScrollBarEnabled(false);
-        rvImageDemo.getRecyclerView().setHasFixedSize(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            rvImageDemo.getRecyclerView().setNestedScrollingEnabled(false);
-        }
-        rvImageDemo.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        rvImageDemo.setAdapter(adapter);
-        adapter.setOnItemClickListener(this);
     }
 
     private void initDownloadButton() {
@@ -154,7 +150,6 @@ public class BookDetailActivity extends BaseActivity implements RecyclerArrayAda
         List<String> list = adapter.getAllData();
         Intent intent = PagePreviewActivity.newIntent(this, list);
         startActivity(intent);
-        //BookReaderActivity.start(this, bookModel);
     }
 
     /**
@@ -162,11 +157,9 @@ public class BookDetailActivity extends BaseActivity implements RecyclerArrayAda
      */
     private void getBundle() {
         Intent intent = getIntent();
-        if (intent != null) {
-            Bundle bundle = intent.getExtras();
-            bookModel = bundle.containsKey(Constant.BOOK) ? (Book) bundle.getSerializable(Constant.BOOK) : new Book();
-            mTagName = "download_book_" + bookModel.getBookId();
-        }
+        mBookId = intent.getIntExtra(EXTRA_BOOK_ID, 0);
+        getApiClient().getBook(mBookId);
+        mProgressDialog.show();
     }
 
     @OnClick(R.id.fragBookDetail_imgBookCover)
@@ -256,5 +249,46 @@ public class BookDetailActivity extends BaseActivity implements RecyclerArrayAda
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         BookDetailActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+    }
+
+    @Override
+    public void onDataResponse(int nCode, BaseModel nData) {
+        if (!(nData instanceof BookResponse)) {
+            return;
+        }
+        bookModel = ((BookResponse) nData).getBook();
+        mTagName = "download_book_" + bookModel.getBookId();
+        //Init download button
+        initDownloadButton();
+        //Load cover image
+        Glide.with(this).load(bookModel.getCover()).into(imgBookCover);
+        //Init description
+        mTvDescription.setText(bookModel.getDescription());
+        ResizableViewHelper.doResizeTextView(mTvDescription, 3, "Xem thêm", true);
+        //Init file size
+        String strFileSize = FileUtils.humanReadableByteCount(bookModel.getFileSize(), true, Locale.US);
+        tvCapacity.setText(getString(R.string.book_detail_file_size, strFileSize));
+        //Init title
+        tvBookName.setText(bookModel.getTitle());
+        adapter = new ImageDemoAdapter(this);
+        adapter.addAll(bookModel.getmDemoPage());
+        //Init recyclerview
+        SnapHelper startSnapHelper = new StartSnapHelper();
+        startSnapHelper.attachToRecyclerView(rvImageDemo.getRecyclerView());
+        rvImageDemo.getRecyclerView().setHorizontalScrollBarEnabled(false);
+        rvImageDemo.getRecyclerView().setHasFixedSize(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            rvImageDemo.getRecyclerView().setNestedScrollingEnabled(false);
+        }
+        rvImageDemo.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        rvImageDemo.setAdapter(adapter);
+        adapter.setOnItemClickListener(this);
+        mProgressDialog.dismiss();
+    }
+
+    @Override
+    public void onBackPressed() {
+        mProgressDialog.dismiss();
+        super.onBackPressed();
     }
 }
